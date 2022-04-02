@@ -1,68 +1,53 @@
+import React from 'react';
+import BassDrum2 from '../Assets/WavSamples/Bass-Drum-2.wav'
 
-import React, { useEffect, useState, useMemo } from 'react';
-const metronomeWorker = new Worker('metronomeWorker.js');
-
-const Sound = () => {
-  // const [song, setSong] = useState({});
-  const [audioContext, setAudioContext] = useState(null);
-
-  useEffect(() => {
-    let mounted = true;
-    if (mounted) {
-      // const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const audioCtx = new AudioContext();
-      setAudioContext(audioCtx);
-      metronomeWorker.onmessage = (e) => {
-        console.warn('e.data is ' + e.data);
-        if (e.data === 'ticker') {
-          console.warn('ticker');
-        }
-        else console.warn('message: ' + e.data);
-      }
-      metronomeWorker.postMessage({'interval' : 25});
+class SoundContext2 extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      song: BassDrum2,
+      audioElement: null,
+      audioContext: null,
+      track: null
     }
-    return () => {
-      mounted = false;
-    }
-  }, []);
-
-  const runOscillator = () => {
-      const oscillator = new OscillatorNode(audioContext);
-      // const gainNode = audioContext.createGain();
-      const length=2;
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // value in hertz
-      // oscillator.connect(gainNode);
-      oscillator.connect(audioContext.destination);
-      console.warn(oscillator);
-      const time = audioContext.currentTime;
-      oscillator.start(time);
-      console.warn('oscillator running at ' + time);
-      oscillator.stop(time + length);
-
+  }
+  componentDidMount(){
+    const AudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioElementComponent = document.querySelector('audio');
+    const trackObj = AudioContext.createMediaElementSource(audioElementComponent);
+    this.setState({
+      audioContext: AudioContext,
+      audioElement: audioElementComponent,
+      track: trackObj});
+    trackObj.connect(AudioContext.destination);
   }
 
-
-    const handleStart = () => {
-      console.warn(audioContext.state);
-      if (audioContext.state==='suspended') {
-        audioContext.resume().then(() => runOscillator());
-      }
-  };
-    const handleStop = () => {
-    audioContext.suspend();
-  };
+  componentWillUnmount(){
+    this.setState({audioContext: null})
+    this.setState({audioElement: null});
+    this.setState({track: null});
+  }
   
-  return (
-  <>
-  <div>Sounds Context2</div>
-  <div>
-    <button onClick={handleStart}>Start</button>
-    <button onClick={handleStop}>Stop</button>
-    <div></div>
-  </div>
-  </>
-  );
-};
+  render(){
+    const audioContext = this.state.audioContext;
+    const handleStartStop = () => {
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      } else if (audioContext.state === 'running') {
+        audioContext.suspend();
+      }
+    };
+    return (
+    <>
+    <div>Sound Context2</div>
+    <div>
+      <audio src={BassDrum2} />
+      <button onClick={handleStartStop}>Start / Stop</button>
+      <div></div>
+    </div>
+    </>
+    );
+  }
+}
 
-export default Sound;
+export default SoundContext2;
