@@ -4,24 +4,23 @@ var interval = 100;
 // code from https://github.com/cwilso/metronome
 
 self.onmessage = (e) => {
-  console.log('self.onmessage: e.data =' + e.data);
+  console.log('in metronomerWorker.js, e.data = ' + e.data);
   if (e.data === 'start') {
-    timerId=setInterval( () => { postMessage('ticker')}, interval);
+    timerId=setInterval( () => { postMessage('start-tick')}, interval);
     console.warn('timerId is: ' + timerId);
   }
-
   else if (e.data.interval) {
     interval = e.data.interval;
-    console.warn('interval= ' + interval);
+    console.warn('interval= ' + e.data.interval);
     if (timerId) {
       clearInterval(timerId);
-      timerId = setInterval( () => { postMessage('tick')}, interval);
+      timerId = setInterval( () => { postMessage('interval-tick')}, interval);
       console.warn('timerId is: ' + timerId);
     }
   }
-
   else if (e.data === 'stop') {
     clearInterval(timerId);
+    console.warn('timerId is: ' + timerId);
     timerId = null;
   }
 }

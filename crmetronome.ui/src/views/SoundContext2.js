@@ -37,13 +37,15 @@ class SoundContext2 extends React.Component{
   runOscillator() {
     if(this.state.audioContext && this.state.gainNode) {
       const oscillator = new OscillatorNode(this.state.audioContext);
+      console.warn('running oscillator');
       const length=5;
       oscillator.type = 'square';
       oscillator.frequency.setValueAtTime(440, this.state.audioContext.currentTime); // value in hertz
       oscillator.connect(this.state.gainNode);
       const time = this.state.audioContext.currentTime;
-      oscillator.start(time);
-      oscillator.stop(time + length);
+      console.warn(time);
+      oscillator.start(time + 5);
+      oscillator.stop(time + 5 +  length);
     }
   }
 
@@ -56,11 +58,10 @@ class SoundContext2 extends React.Component{
     };
     const handleStartStop = () => {
       if (this.state.audioContext.state === 'suspended') {
-        console.warn('suspended');
         this.state.audioContext.resume().then(() => this.runOscillator());
       } else if (this.state.audioContext.state === 'running') {
-        console.warn('running');
         this.state.audioContext.suspend();
+        console.warn('suspended');
       }
     };
     return (
