@@ -7,7 +7,9 @@ const SoundContext3 = () => {
   const [audioContext, setAudioContext] = useState(null);
   const [gainNode, setGainNode] = useState(null);
   const [volume, setVolume] = useState(0.1); // stores the starting volume
-  const [running, setRunning] = useState(false);
+  const [metronomeRunning, setMetronomeRunning] = useState(false);
+  const [sequenceRunning, setSequenceRunning] = useState(false);
+  const [tempo, setTempo] = useState(60);
   const setupContext = () => {
     const audioCtx = new AudioContext();
     const tmpGainNode = audioCtx.createGain();
@@ -17,10 +19,25 @@ const SoundContext3 = () => {
   };
 
   useEffect(() => {
+    const lookahead = .1 
+    let nextNote = 0;
     metronomeWorker.onmessage = (e) => {
-      console.warn('in useEffect: e.data is ' + e.data);
+      if ( e.data === 'tick'){
+        // console.warn('nextNote: ' + nextNote + 'currentTime: ' + audioContext.currentTime);
+        if ( nextNote < audioContext.currentTime)
+        {
+        // console.warn('nextNote: ' + nextNote + 'currentTime: ' + audioContext.currentTime);
+           nextNote = audioContext.currentTime + lookahead + .1;
+        }
+        if ( nextNote < audioContext.currentTime + lookahead){
+          runOscillator(nextNote, false);
+          nextNote += 60 / tempo;
+          // console.warn(tempo);
+        }
+      // console.warn('in useEffect: e.data is ' + e.data);
+      }
     }
-  }, [metronomeWorker]);
+  }, [metronomeWorker, audioContext, tempo]);
 
   useEffect(() => {
     let mounted = true;
@@ -52,21 +69,21 @@ const SoundContext3 = () => {
       const length = 1/40;
       oscillator.type = 'square';
       oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // value in hertz
+      // console.warn(gainNode);
       oscillator.connect(gainNode);
-      console.warn('time: ' + time + ' currentTime: ' + audioContext.currentTime);
+      // console.warn('time is : ' + time + ' currrentTime is: ' + audioContext.currentTime);
       oscillator.start(time);
       oscillator.stop(time + length);
     }
   };
 
-  const schedule_measure = (pattern, start) => {
+  const schedule_measure = (pattern, tempo, start) => {
     const beats = pattern.reduce((a,b) => a + b, 0);
-    const tempo = 30;
     let strong = false;
     for ( let i = 0, j = 0, k = 0; i < beats; i++) {
       if ( j === 0 ) strong = true; else strong = false;
       runOscillator(start, strong );
-      start = start + tempo/60;
+      start = start + 60/tempo;
       j++;
       if ( j === pattern[k]) {
         j = 0;
@@ -76,61 +93,76 @@ const SoundContext3 = () => {
     return start;
   };
 
-  const schedule_measures = (pattern, reps, lookahead) => {
+  const schedule_measures = (pattern, tempo, reps) => {
+    const lookahead = .1
     let start = audioContext.currentTime + lookahead;
     for ( let i = 0; i < reps; i++) {
-      start = schedule_measure(pattern, start);
+      start = schedule_measure(pattern, tempo, start);
     }
   };
  
 
 
-  const handleStart = () => {
-    console.warn(audioContext.state);
+  const handleStartSequence = () => {
+    //console.warn(audioContext.state);
     gainNode.gain.value=volume;
-    const pattern = [1,1];
-    const lookahead = 0;
-    if ( !running ) {
-      metronomeWorker.postMessage('start');
-      schedule_measures(pattern, 5, lookahead);
-      setRunning(true);
+    const pattern = [3,2];
+    const tempo = 120;
+    const reps = 5;
+    if ( !sequenceRunning && !metronomeRunning ) {
+      schedule_measures(pattern, tempo, reps);
+      setSequenceRunning(true);
     } else {
       if ( audioContext.state === 'suspended') {
-        metronomeWorker.postMessage('start');
         audioContext.resume();
       } else {
        audioContext.suspend();
-       metronomeWorker.postMessage('stop');
       }
     }
   };
 
   const handleStop = () => {
-    metronomeWorker.postMessage('stop');
     audioContext.close();
     setupContext();
-    setRunning(false);
+    setSequenceRunning(false);
   };
-
+  
   const handleVolume = (e) => {
     setVolume(e.target.value/100);
     gainNode.gain.value=e.target.value/100;
     // gainNode.gain.value=volume;
   };
 
-  const handlePause = () => {
-    audioContext.suspend();
-    metronomeWorker.postMessage('stop');
-  };
+  
+  const handleTempo = (e) => { 
+    setTempo(e.target.value);
+  }
+
+
+  const handleStartMetronome = () => {
+    gainNode.gain.value=volume;
+    if ( !sequenceRunning && !metronomeRunning) {
+    metronomeWorker.postMessage('start');
+    setMetronomeRunning(true);
+    } else if (!sequenceRunning  && metronomeRunning) {
+      metronomeWorker.postMessage('stop');
+      setMetronomeRunning(false);
+    }
+  }
   
   return (
   <>
   <div>Sounds Context3</div>
   <div>
-    <button onClick={handleStart}>Start / Restart / Pause Sequence</button>
-    <button onClick={handlePause}>Pause Sequence</button>
-    <button onClick={handleStop}>Stop Sequence</button>
-    <input id="vol-control" type="range" min="0" max="100" step="1" onChange={handleVolume}></input>
+    <button onClick={handleStartSequence} disabled={metronomeRunning}>Start / Restart / Pause Sequence</button>
+    <button onClick={handleStop} disabled={metronomeRunning}>Reload Sequence</button>
+    <button onClick={handleStartMetronome} disabled={sequenceRunning}>Start / Stop Metronome</button>
+    <label htmlFor = 'tempo'>Tempo: </label>
+    <input type='number' id='tempo' name='tempo' min = '40' max = '208' 
+      pattern="^\d*(\.\d{0,2})?$"  value={tempo}
+      onChange={handleTempo}/>
+    <input id='vol-control' type='range' min='0' max='100' step='1' onChange={handleVolume}
+    value={volume * 100}/> 
 
     <div></div>
   </div>

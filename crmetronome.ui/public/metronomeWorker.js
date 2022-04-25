@@ -6,12 +6,12 @@ var interval = 100;
 self.onmessage = (e) => {
   console.log('in metronomerWorker.js, e.data = ' + e.data);
   if (e.data === 'start') {
-    timerId=setInterval( () => { postMessage('start-tick')}, interval);
+    timerId=setInterval( () => { postMessage('tick')}, interval);
     console.warn('timerId is: ' + timerId);
   }
   else if (e.data.interval) {
     interval = e.data.interval;
-    console.warn('interval= ' + e.data.interval);
+    // console.warn('interval= ' + e.data.interval);
     if (timerId) {
       clearInterval(timerId);
       timerId = setInterval( () => { postMessage('interval-tick')}, interval);
