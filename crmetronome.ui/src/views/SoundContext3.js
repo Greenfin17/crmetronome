@@ -55,7 +55,6 @@ const SoundContext3 = () => {
     let mounted = true;
     if (mounted && audioContext && gainNode) {
       gainNode.connect(audioContext.destination);
-      setVolume(0.1);
     }
   }, [audioContext, gainNode]);
 
@@ -104,8 +103,7 @@ const SoundContext3 = () => {
 
 
   const handleStartSequence = () => {
-    //console.warn(audioContext.state);
-    gainNode.gain.value=volume;
+    gainNode.gain.value = volume;
     const pattern = [3,2];
     const tempo = 120;
     const reps = 5;
