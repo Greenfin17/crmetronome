@@ -92,15 +92,15 @@ const SoundContext3 = () => {
     return start;
   };
 
-  const schedule_measures = (unit) => {
-    const lookahead = .1
-    let start = audioContext.currentTime + lookahead;
-   ]''[repsunit['reps'].
-     ]''[unit[''].unit.
-     
+  const schedule_measures = (unit, start) => {
+    for ( let i = 0; i < unit.reps; i++) {
+      start = schedule_measure(unit.pattern, unit.tempo, start);
+    }
+    return start;
   };
 
   const schedule_sequence = () => {
+    const lookahead = .2
     const sequence =  
       [
         {
@@ -111,11 +111,12 @@ const SoundContext3 = () => {
         {
           pattern: [2,3,2],
           reps: 3,
-          tempo: 112
+          tempo: 160
         },
       ];
+    let start = audioContext.currentTime + lookahead;
     for ( let i = 0; i < sequence.length; i++) {
-      schedule_measures(sequence[i]);
+      start = schedule_measures(sequence[i], start);
     }   
   }
  
@@ -124,7 +125,7 @@ const SoundContext3 = () => {
   const handleStartSequence = () => {
     gainNode.gain.value = volume;
     if ( !sequenceRunning && !metronomeRunning ) {
-      schedule_measures(pattern, tempo, reps);
+      schedule_sequence();
       setSequenceRunning(true);
     } else {
       if ( audioContext.state === 'suspended') {
