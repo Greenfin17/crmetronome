@@ -65,25 +65,25 @@ const SoundContext3 = () => {
 
   const drawCanvas = () => {
     let color = 'blue';
-    if (nextNote.current === -1) {
+    if (nextNote.current === -1 && !sequenceRunning || nextInSequence.current === -1 && !metronomeRunning) {
       color = 'black';
-    }
-    else if (nextNote.current < audioContext.currentTime + .16) {
+    } else if ( Math.abs(audioContext.currentTime - nextNote.current) < .16 ) {
+      color = 'red';
+    } else if ( Math.abs(audioContext.currentTime - nextInSequence.current) < .16) {
       color = 'red';
     }
+
     drawBlinker(color);
     requestAnimationFrame(drawCanvas);
   };
   
   // metronome triggered by metronomeWorker  
   useEffect(() => {
-    console.warn('useEffect');
     if(audioContext) {
       const lookahead = .1 
       initializeIterator();
       nextNote.current = audioContext.currentTime + lookahead;
       nextInSequence.current = audioContext.currentTime + lookahead;
-      // console.warn('nextNote.current: ' + nextNote.current);
       metronomeWorker.onmessage = (e) => {
         if ( e.data === 'tick'){
           if (nextNote.current === -1) nextNote.current = audioContext.currentTime + lookahead;
@@ -108,10 +108,12 @@ const SoundContext3 = () => {
           if ( nextInSequence.current < audioContext.currentTime + lookahead){
             if ( iterator.current.k === 0 ) strong = true; else strong = false;
             runOscillator(nextInSequence.current, strong );
+            /*
             console.warn('i: ' + iterator.current.i);
             console.warn('j: ' + iterator.current.j);
             console.warn('k: ' + iterator.current.k);
             console.warn('l: ' + iterator.current.l);
+            */
             nextInSequence.current = nextInSequence.current + 60/sequence[iterator.current.i].tempo;
             iterator.current.k++; iterator.current.l++;
             if ( iterator.current.k === sequence[iterator.current.i].pattern[iterator.current.j]) {
@@ -168,10 +170,17 @@ const SoundContext3 = () => {
       if ( nextNote.current < audioContext.currentTime + .1)
         requestAnimRef.current = requestAnimationFrame(drawCanvas);
     }
+    else if (sequenceRunning) {
+      console.warn(nextInSequence.current);
+      if( nextInSequence.current < audioContext.currentTime + .1) { 
+        requestAnimRef.current = requestAnimationFrame(drawCanvas);
+      }
+      else cancelAnimationFrame(requestAnimRef.current);
+    }
     return () => {
       cancelAnimationFrame(requestAnimRef.current);
     }
-  }, [metronomeRunning]);
+  }, [metronomeRunning, sequenceRunning]);
  
 
 
@@ -187,7 +196,7 @@ const SoundContext3 = () => {
       oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // value in hertz
       // console.warn(gainNode);
       oscillator.connect(gainNode);
-      console.warn('time is : ' + time + ' currrentTime is: ' + audioContext.currentTime);
+      // console.warn('time is : ' + time + ' currrentTime is: ' + audioContext.currentTime);
       oscillator.start(time);
       oscillator.stop(time + length);
     }
@@ -249,20 +258,24 @@ const SoundContext3 = () => {
       if (audioContext.state === 'suspended') {
         audioContext.resume();
       }
+      nextInSequence.current = audioContext.currentTime + .05;
       metronomeWorker.postMessage('seqStart');
+      setSequenceRunning(true);
       setStartButtonIcon(faPause);
       //schedule_sequence();
       setSequenceRunning(true);
     } else if (sequenceRunning) {
        metronomeWorker.postMessage('seqStop');
+      setSequenceRunning(false);
+      nextInSequence.current = -1; // signals black blinker
       setStartButtonIcon(faPlay);
-       setSequenceRunning(false);
     }
   };
 
   const handleStop = () => {
     metronomeWorker.postMessage('seqStop');
     setSequenceRunning(false);
+    nextInSequence.current = -1; // signals black blinker
     // reset sequence to beginning.
     initializeIterator();
     setStartButtonIcon(faPlay);
