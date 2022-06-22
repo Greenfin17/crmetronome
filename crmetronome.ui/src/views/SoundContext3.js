@@ -44,6 +44,14 @@ const SoundContext3 = () => {
       reps : 0 // repetitions of each measure
     };
   }
+   
+  const resetSequencer = () => {
+    setSequenceRunning(false);
+    nextInSequence.current = -1; // signals black blinker
+    // reset sequence to beginning.
+    initializeIterator();
+    setStartButtonIcon(faPlay);
+  };
     
   const setupContext = () => {
     const audioCtx = new AudioContext();
@@ -63,6 +71,9 @@ const SoundContext3 = () => {
     }
   };
 
+  // blinker using animationFrame
+  // blinker turns red when beat is immminent.
+  // blinker turns black when no metronome or sequence is running
   const drawCanvas = () => {
     let color = 'blue';
     if (nextNote.current === -1 && !sequenceRunning || nextInSequence.current === -1 && !metronomeRunning) {
@@ -85,6 +96,7 @@ const SoundContext3 = () => {
       nextNote.current = audioContext.currentTime + lookahead;
       nextInSequence.current = audioContext.currentTime + lookahead;
       metronomeWorker.onmessage = (e) => {
+        console.warn('in useEffect: e.data is ' + e.data);
         if ( e.data === 'tick'){
           if (nextNote.current === -1) nextNote.current = audioContext.currentTime + lookahead;
           /*
@@ -101,7 +113,8 @@ const SoundContext3 = () => {
             // console.warn(tempo);
           }
         // console.warn('in useEffect: e.data is ' + e.data);
-        } 
+        }
+        // for loop without the for statement. messages keep loop going until sequence is completed.
         else if (e.data === 'seqTick' && iterator.current.i < sequence.length) {
           const beats = sequence[iterator.current.i].pattern.reduce((a,b) => a + b, 0);
           let strong;
@@ -129,6 +142,10 @@ const SoundContext3 = () => {
               } 
             }
           }
+          // automatically stop worker messages when sequence is completed.
+        } else { 
+          metronomeWorker.postMessage('seqStop');
+          resetSequencer();
         }
       }
     }
@@ -254,11 +271,11 @@ const SoundContext3 = () => {
   const handleStartSequence = () => {
     gainNode.gain.value = volume;
     if ( !sequenceRunning && !metronomeRunning ) {
-      nextInSequence.current = audioContext.currentTime + .05;
+      nextInSequence.current = audioContext.currentTime + .1;
       if (audioContext.state === 'suspended') {
         audioContext.resume();
       }
-      nextInSequence.current = audioContext.currentTime + .05;
+      nextInSequence.current = audioContext.currentTime + .1;
       metronomeWorker.postMessage('seqStart');
       setSequenceRunning(true);
       setStartButtonIcon(faPause);
@@ -274,11 +291,7 @@ const SoundContext3 = () => {
 
   const handleStop = () => {
     metronomeWorker.postMessage('seqStop');
-    setSequenceRunning(false);
-    nextInSequence.current = -1; // signals black blinker
-    // reset sequence to beginning.
-    initializeIterator();
-    setStartButtonIcon(faPlay);
+    resetSequencer();
   };
   
   const handleVolume = (e) => {
@@ -312,7 +325,7 @@ const SoundContext3 = () => {
   <div>
     <button onClick={handleStartSequence} disabled={metronomeRunning}>
       <FontAwesomeIcon  icon={startButtonIcon}/></button>
-    <button onClick={handleStop} disabled={metronomeRunning}><FontAwesomeIcon icon={faRefresh}/></button>
+    <button onClick={handleStop} disabled={metronomeRunning || nextInSequence.current === -1}><FontAwesomeIcon icon={faRefresh}/></button>
     <button onClick={handleStartMetronome} disabled={sequenceRunning}>Start / Stop Metronome</button>
     <label htmlFor = 'tempo'>Tempo: </label>
     <input type='number' id='tempo' name='tempo' min = '40' max = '208' 
@@ -320,6 +333,7 @@ const SoundContext3 = () => {
       onChange={handleTempo}/>
     <input id='vol-control' type='range' min='0' max='100' step='1' onChange={handleVolume}
     value={volume * 100}/> 
+    <progress id="progress" max="100" value="50">progress</progress>
 
     <canvas ref={visualRef} className='blinker'></canvas>
   </div>
