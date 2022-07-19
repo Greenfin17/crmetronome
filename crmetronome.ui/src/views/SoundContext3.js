@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 const metronomeWorker = new Worker('metronomeWorker.js');
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons';
+import getProgress from '../data/helpers/calculators';
 
 
 const SoundContext3 = () => {
@@ -29,9 +30,12 @@ const SoundContext3 = () => {
       ]);
   const requestAnimRef = useRef(); // stores requestAnimationFrame
   // const timeRef = useRef(); // stores time of last beat
-  const visualRef = useRef(); // DOM element for blinker
+  const blinkerRef = useRef(); // DOM element for blinker
+  const progressRef = useRef();
+  const progressValue = useRef();
   const visualCtxRef  = useRef(); // visual Context
   const nextNote = useRef(); // tracks next metronome beat
+  const firstInSequence = useRef(); // tracks beginning of sequence for progress bar
   const nextInSequence = useRef(); // tracks next sequence beat
   const iterator = useRef();
 
@@ -63,7 +67,7 @@ const SoundContext3 = () => {
   
   const drawBlinker = (color) => {
     if(visualCtxRef.current != null && audioContext != null ){
-      const  canvasElement = visualRef.current;
+      const  canvasElement = blinkerRef.current;
       visualCtxRef.current.clearRect(0,0, canvasElement.width, canvasElement.height );
       visualCtxRef.current.fillStyle = color; 
       var x = Math.floor(canvasElement.width / 6);
@@ -71,11 +75,18 @@ const SoundContext3 = () => {
     }
   };
 
+  
+  const setProgress = () => {
+    progressValue.current = getProgress(sequence, iterator, firstInSequence.current, nextInSequence.current);
+  }
+ 
+
   // blinker using animationFrame
   // blinker turns red when beat is immminent.
   // blinker turns black when no metronome or sequence is running
   const drawCanvas = () => {
     let color = 'blue';
+    // let progress = 0;
     if (nextNote.current === -1 && !sequenceRunning || nextInSequence.current === -1 && !metronomeRunning) {
       color = 'black';
     } else if ( Math.abs(audioContext.currentTime - nextNote.current) < .16 ) {
@@ -95,8 +106,9 @@ const SoundContext3 = () => {
       initializeIterator();
       nextNote.current = audioContext.currentTime + lookahead;
       nextInSequence.current = audioContext.currentTime + lookahead;
+      firstInSequence.current = nextInSequence.current;
       metronomeWorker.onmessage = (e) => {
-        console.warn('in useEffect: e.data is ' + e.data);
+        // console.warn('in useEffect: e.data is ' + e.data);
         if ( e.data === 'tick'){
           if (nextNote.current === -1) nextNote.current = audioContext.currentTime + lookahead;
           /*
@@ -130,7 +142,7 @@ const SoundContext3 = () => {
             nextInSequence.current = nextInSequence.current + 60/sequence[iterator.current.i].tempo;
             iterator.current.k++; iterator.current.l++;
             if ( iterator.current.k === sequence[iterator.current.i].pattern[iterator.current.j]) {
-              // next group in pattern
+              // Next group in pattern within measure signals strong beat with k == 0
               iterator.current.k = 0; iterator.current.j++
               }
             if ( iterator.current.l === beats) {
@@ -174,12 +186,13 @@ const SoundContext3 = () => {
   }, [audioContext, gainNode]);
 
   useEffect (() => {
-    const  canvasElement = visualRef.current;
+    const  canvasElement = blinkerRef.current;
     visualCtxRef.current = canvasElement.getContext('2d');
     visualCtxRef.current.width = window.innerWidth;
     visualCtxRef.current.height = window.innerHeight;
     visualCtxRef.current.strokeStyle = '#ffffff';
     visualCtxRef.current.lineWidth = 2;
+    progressValue.current = 0;
   }, []);
 
   useLayoutEffect(() => {
@@ -202,7 +215,7 @@ const SoundContext3 = () => {
 
 
   const runOscillator = (time, strong) => {
-    if(audioContext && gainNode) {
+    if(audioContext && gainNode && time > 0) {
       let frequency = 440;
       if (strong) {
         frequency =  880;
@@ -296,6 +309,7 @@ const SoundContext3 = () => {
   
   const handleVolume = (e) => {
     setVolume(e.target.value/100);
+    setProgress();
     gainNode.gain.value=e.target.value/100;
     // gainNode.gain.value=volume;
   };
@@ -333,9 +347,9 @@ const SoundContext3 = () => {
       onChange={handleTempo}/>
     <input id='vol-control' type='range' min='0' max='100' step='1' onChange={handleVolume}
     value={volume * 100}/> 
-    <progress id="progress" max="100" value="50">progress</progress>
+    <progress ref={progressRef}  id="progress" max="100" value={progressValue.current}>progress</progress>
 
-    <canvas ref={visualRef} className='blinker'></canvas>
+    <canvas ref={blinkerRef} className='blinker'></canvas>
   </div>
   </>
   );
