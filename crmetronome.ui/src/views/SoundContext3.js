@@ -1,6 +1,6 @@
-
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 const metronomeWorker = new Worker('metronomeWorker.js');
+import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons';
 import getProgress from '../data/helpers/calculators';
@@ -32,7 +32,8 @@ const SoundContext3 = () => {
   // const timeRef = useRef(); // stores time of last beat
   const blinkerRef = useRef(); // DOM element for blinker
   const progressRef = useRef();
-  const progressValue = useRef();
+  const [progressPercentage, setProgressPercentage] = useState(0);
+  const progressTotal = useRef();
   const visualCtxRef  = useRef(); // visual Context
   const nextNote = useRef(); // tracks next metronome beat
   const firstInSequence = useRef(); // tracks beginning of sequence for progress bar
@@ -41,11 +42,11 @@ const SoundContext3 = () => {
 
   const initializeIterator = () => {
     iterator.current = {
-      i : 0,  // measure iterator
-      j : 0,  // pattern iterator;
+      i : 0,  // pattern iterator
+      j : 0,  // iterator within pattern;
       k : 0,  // tracks strong beats;
-      l : 0, // tracks number of beats in measure
-      reps : 0 // repetitions of each measure
+      l : 0, // tracks number of beats in measure, needed to signal next pattern
+      reps : 0 // repetitions of each pattern
     };
   }
    
@@ -54,6 +55,8 @@ const SoundContext3 = () => {
     nextInSequence.current = -1; // signals black blinker
     // reset sequence to beginning.
     initializeIterator();
+    progressTotal.current = 0; // reset progress bar
+    setProgressPercentage(0);
     setStartButtonIcon(faPlay);
   };
     
@@ -74,12 +77,6 @@ const SoundContext3 = () => {
       visualCtxRef.current.fillRect(x * 1, x, x/2, x/2);
     }
   };
-
-  
-  const setProgress = () => {
-    progressValue.current = getProgress(sequence, iterator, firstInSequence.current, nextInSequence.current);
-  }
- 
 
   // blinker using animationFrame
   // blinker turns red when beat is immminent.
@@ -104,11 +101,11 @@ const SoundContext3 = () => {
     if(audioContext) {
       const lookahead = .1 
       initializeIterator();
+      progressTotal.current = 0;
       nextNote.current = audioContext.currentTime + lookahead;
       nextInSequence.current = audioContext.currentTime + lookahead;
       firstInSequence.current = nextInSequence.current;
       metronomeWorker.onmessage = (e) => {
-        // console.warn('in useEffect: e.data is ' + e.data);
         if ( e.data === 'tick'){
           if (nextNote.current === -1) nextNote.current = audioContext.currentTime + lookahead;
           /*
@@ -122,9 +119,7 @@ const SoundContext3 = () => {
           if ( nextNote.current < audioContext.currentTime + lookahead){
             runOscillator(nextNote.current, false);
             nextNote.current += 60 / tempo;
-            // console.warn(tempo);
           }
-        // console.warn('in useEffect: e.data is ' + e.data);
         }
         // for loop without the for statement. messages keep loop going until sequence is completed.
         else if (e.data === 'seqTick' && iterator.current.i < sequence.length) {
@@ -140,7 +135,9 @@ const SoundContext3 = () => {
             console.warn('l: ' + iterator.current.l);
             */
             nextInSequence.current = nextInSequence.current + 60/sequence[iterator.current.i].tempo;
+            progressTotal.current += 60/sequence[iterator.current.i].tempo;
             iterator.current.k++; iterator.current.l++;
+            setProgressPercentage(getProgress(sequence, iterator, progressTotal.current));
             if ( iterator.current.k === sequence[iterator.current.i].pattern[iterator.current.j]) {
               // Next group in pattern within measure signals strong beat with k == 0
               iterator.current.k = 0; iterator.current.j++
@@ -192,7 +189,7 @@ const SoundContext3 = () => {
     visualCtxRef.current.height = window.innerHeight;
     visualCtxRef.current.strokeStyle = '#ffffff';
     visualCtxRef.current.lineWidth = 2;
-    progressValue.current = 0;
+    // progressPercentage.current = 0;
   }, []);
 
   useLayoutEffect(() => {
@@ -201,7 +198,6 @@ const SoundContext3 = () => {
         requestAnimRef.current = requestAnimationFrame(drawCanvas);
     }
     else if (sequenceRunning) {
-      console.warn(nextInSequence.current);
       if( nextInSequence.current < audioContext.currentTime + .1) { 
         requestAnimRef.current = requestAnimationFrame(drawCanvas);
       }
@@ -224,9 +220,7 @@ const SoundContext3 = () => {
       const length = 1/40;
       oscillator.type = 'square';
       oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // value in hertz
-      // console.warn(gainNode);
       oscillator.connect(gainNode);
-      // console.warn('time is : ' + time + ' currrentTime is: ' + audioContext.currentTime);
       oscillator.start(time);
       oscillator.stop(time + length);
     }
@@ -285,31 +279,24 @@ const SoundContext3 = () => {
     gainNode.gain.value = volume;
     if ( !sequenceRunning && !metronomeRunning ) {
       nextInSequence.current = audioContext.currentTime + .1;
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-      nextInSequence.current = audioContext.currentTime + .1;
       metronomeWorker.postMessage('seqStart');
       setSequenceRunning(true);
       setStartButtonIcon(faPause);
-      //schedule_sequence();
-      setSequenceRunning(true);
     } else if (sequenceRunning) {
-       metronomeWorker.postMessage('seqStop');
+      metronomeWorker.postMessage('seqStop');
       setSequenceRunning(false);
       nextInSequence.current = -1; // signals black blinker
       setStartButtonIcon(faPlay);
     }
   };
 
-  const handleStop = () => {
+  const handleResetSequencer= () => {
     metronomeWorker.postMessage('seqStop');
     resetSequencer();
   };
   
   const handleVolume = (e) => {
     setVolume(e.target.value/100);
-    setProgress();
     gainNode.gain.value=e.target.value/100;
     // gainNode.gain.value=volume;
   };
@@ -339,15 +326,16 @@ const SoundContext3 = () => {
   <div>
     <button onClick={handleStartSequence} disabled={metronomeRunning}>
       <FontAwesomeIcon  icon={startButtonIcon}/></button>
-    <button onClick={handleStop} disabled={metronomeRunning || nextInSequence.current === -1}><FontAwesomeIcon icon={faRefresh}/></button>
+    <button onClick={handleResetSequencer} disabled={metronomeRunning || nextInSequence.current === -1}><FontAwesomeIcon icon={faRefresh}/></button>
     <button onClick={handleStartMetronome} disabled={sequenceRunning}>Start / Stop Metronome</button>
     <label htmlFor = 'tempo'>Tempo: </label>
     <input type='number' id='tempo' name='tempo' min = '40' max = '208' 
       pattern="^\d*(\.\d{0,2})?$"  value={tempo}
       onChange={handleTempo}/>
     <input id='vol-control' type='range' min='0' max='100' step='1' onChange={handleVolume}
-    value={volume * 100}/> 
-    <progress ref={progressRef}  id="progress" max="100" value={progressValue.current}>progress</progress>
+    value={volume * 100}/>
+    <ProgressBar ref={progressRef} now={progressPercentage}
+        variant='info'/>
 
     <canvas ref={blinkerRef} className='blinker'></canvas>
   </div>

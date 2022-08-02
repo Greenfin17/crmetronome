@@ -4,7 +4,7 @@ import {
   Navbar,
   Nav,
   NavItem
-} from 'reactstrap';
+} from 'react-bootstrap';
 
 const NavBar = () => (
   <div>
