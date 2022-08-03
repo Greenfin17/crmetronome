@@ -11,6 +11,7 @@ self.onmessage = (e) => {
     console.warn('timerId is: ' + timerId);
   } 
   else if (e.data === 'seqStart') {
+    console.warn('sequence start');
     seqTimerId=setInterval( () => { postMessage('seqTick')}, interval);
     console.warn('seqTimerId is: ' + seqTimerId);
   }

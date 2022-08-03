@@ -3,7 +3,7 @@ const metronomeWorker = new Worker('metronomeWorker.js');
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons';
-import getProgress from '../data/helpers/calculators';
+// import getProgress from '../data/helpers/calculators';
 
 
 const SoundContext3 = () => {
@@ -29,12 +29,17 @@ const SoundContext3 = () => {
         },
       ]);
   const requestAnimRef = useRef(); // stores requestAnimationFrame
+  const requestAnimProgressRef = useRef(); // stores requestAnimationFrame
+                                           // for progress bar
   // const timeRef = useRef(); // stores time of last beat
   const blinkerRef = useRef(); // DOM element for blinker
   const progressRef = useRef();
-  const [progressPercentage, setProgressPercentage] = useState(0);
+  const progressID = useRef(); // ID for setTimeout for progress %
+  const elapsedTime = useRef(); // track sequence progress
+  const progressPercentage = useRef();
   const progressTotal = useRef();
   const visualCtxRef  = useRef(); // visual Context
+  const visualCtxProgressRef  = useRef(); // visual Context for progress bar
   const nextNote = useRef(); // tracks next metronome beat
   const firstInSequence = useRef(); // tracks beginning of sequence for progress bar
   const nextInSequence = useRef(); // tracks next sequence beat
@@ -52,11 +57,16 @@ const SoundContext3 = () => {
    
   const resetSequencer = () => {
     setSequenceRunning(false);
+    runProgress('stop');
     nextInSequence.current = -1; // signals black blinker
     // reset sequence to beginning.
     initializeIterator();
-    progressTotal.current = 0; // reset progress bar
-    setProgressPercentage(0);
+    // reset progress bar
+    progressTotal.current = 0;
+    progressPercentage.current = 0;
+    elapsedTime.current = 0;
+    debugger;
+    requestAnimProgressRef.current = requestAnimationFrame(drawProgress);
     setStartButtonIcon(faPlay);
   };
     
@@ -83,7 +93,6 @@ const SoundContext3 = () => {
   // blinker turns black when no metronome or sequence is running
   const drawCanvas = () => {
     let color = 'blue';
-    // let progress = 0;
     if (nextNote.current === -1 && !sequenceRunning || nextInSequence.current === -1 && !metronomeRunning) {
       color = 'black';
     } else if ( Math.abs(audioContext.currentTime - nextNote.current) < .16 ) {
@@ -93,8 +102,33 @@ const SoundContext3 = () => {
     }
 
     drawBlinker(color);
-    requestAnimationFrame(drawCanvas);
+    if (sequenceRunning || metronomeRunning) {
+      // save the animationFrame ID for cancellation.
+      requestAnimRef.current = requestAnimationFrame(drawCanvas);
+    }
+    
   };
+
+  
+  const drawProgress = () => {
+    const color = 'blue';
+
+    if (visualCtxProgressRef.current != null && audioContext != null) {
+      const canvasElement = progressRef.current;
+      visualCtxProgressRef.current.clearRect(0,0, canvasElement.width, canvasElement.height );
+      visualCtxProgressRef.current.fillStyle = color; 
+      // var x = Math.floor(canvasElement.width / 6);
+
+      var x = (progressPercentage.current / 100) * canvasElement.width;
+      var y = canvasElement.height;
+      // console.warn('percentage.current is ' + progressPercentage.current);
+      visualCtxProgressRef.current.fillRect(0, 0, x, y);
+      if (sequenceRunning) {
+        requestAnimProgressRef.current = requestAnimationFrame(drawProgress);
+      }
+    }
+  }
+  
   
   // metronome triggered by metronomeWorker  
   useEffect(() => {
@@ -102,13 +136,13 @@ const SoundContext3 = () => {
       const lookahead = .1 
       initializeIterator();
       progressTotal.current = 0;
-      nextNote.current = audioContext.currentTime + lookahead;
-      nextInSequence.current = audioContext.currentTime + lookahead;
+      // nextNote.current = audioContext.currentTime + lookahead;
+      // nextInSequence.current = audioContext.currentTime + lookahead;
       firstInSequence.current = nextInSequence.current;
       metronomeWorker.onmessage = (e) => {
         if ( e.data === 'tick'){
           if (nextNote.current === -1) nextNote.current = audioContext.currentTime + lookahead;
-          /*
+          /* 
           console.warn('nextNote: ' + nextNote + 'currentTime: ' + audioContext.currentTime);
           if ( nextNote < audioContext.currentTime)
           {
@@ -125,6 +159,8 @@ const SoundContext3 = () => {
         else if (e.data === 'seqTick' && iterator.current.i < sequence.length) {
           const beats = sequence[iterator.current.i].pattern.reduce((a,b) => a + b, 0);
           let strong;
+          // console.warn('next in sequence: ' + nextInSequence.current);
+          // console.warn('curren time: ' + audioContext.currentTime);
           if ( nextInSequence.current < audioContext.currentTime + lookahead){
             if ( iterator.current.k === 0 ) strong = true; else strong = false;
             runOscillator(nextInSequence.current, strong );
@@ -137,7 +173,7 @@ const SoundContext3 = () => {
             nextInSequence.current = nextInSequence.current + 60/sequence[iterator.current.i].tempo;
             progressTotal.current += 60/sequence[iterator.current.i].tempo;
             iterator.current.k++; iterator.current.l++;
-            setProgressPercentage(getProgress(sequence, iterator, progressTotal.current));
+            // progressPercentage.current = getProgress(sequence, iterator, progressTotal.current);
             if ( iterator.current.k === sequence[iterator.current.i].pattern[iterator.current.j]) {
               // Next group in pattern within measure signals strong beat with k == 0
               iterator.current.k = 0; iterator.current.j++
@@ -155,6 +191,7 @@ const SoundContext3 = () => {
         } else { 
           metronomeWorker.postMessage('seqStop');
           resetSequencer();
+          runProgress('stop');
         }
       }
     }
@@ -184,28 +221,50 @@ const SoundContext3 = () => {
 
   useEffect (() => {
     const  canvasElement = blinkerRef.current;
+    const progressCanvas = progressRef.current;
     visualCtxRef.current = canvasElement.getContext('2d');
     visualCtxRef.current.width = window.innerWidth;
     visualCtxRef.current.height = window.innerHeight;
     visualCtxRef.current.strokeStyle = '#ffffff';
     visualCtxRef.current.lineWidth = 2;
+
+    visualCtxProgressRef.current = progressCanvas.getContext('2d');
+    visualCtxProgressRef.current.width = window.innerWidth;
+    visualCtxProgressRef.current.height = window.innerHeight;
     // progressPercentage.current = 0;
+    requestAnimProgressRef.current = null;
+    requestAnimRef.current = null;
   }, []);
 
   useLayoutEffect(() => {
-    if (metronomeRunning) {
-      if ( nextNote.current < audioContext.currentTime + .1)
-        requestAnimRef.current = requestAnimationFrame(drawCanvas);
+    if (metronomeRunning && requestAnimRef.current === null) {
+      // if ( nextNote.current < audioContext.currentTime + .1)
+      requestAnimRef.current = requestAnimationFrame(drawCanvas);
     }
     else if (sequenceRunning) {
-      if( nextInSequence.current < audioContext.currentTime + .1) { 
+      if (requestAnimProgressRef.current === null) {
+        requestAnimProgressRef.current = requestAnimationFrame(drawProgress);
+      }
+      if(requestAnimRef.current === null){
         requestAnimRef.current = requestAnimationFrame(drawCanvas);
       }
-      else cancelAnimationFrame(requestAnimRef.current);
     }
-    return () => {
+    if (!metronomeRunning && !sequenceRunning && requestAnimRef.current != null){
       cancelAnimationFrame(requestAnimRef.current);
+      requestAnimRef.current = null;
     }
+    if (!sequenceRunning && requestAnimProgressRef.current != null) {
+      cancelAnimationFrame(requestAnimProgressRef.current);
+      requestAnimProgressRef.current = null;
+    }
+    
+    return () => {
+      // debugger;
+      cancelAnimationFrame(requestAnimRef.current);
+      cancelAnimationFrame(requestAnimProgressRef.current);
+    }
+    
+    
   }, [metronomeRunning, sequenceRunning]);
  
 
@@ -272,26 +331,59 @@ const SoundContext3 = () => {
     }   
   }
   */
- 
+  
+  const runProgress = (command) => {
+    let totalTime = 0;
+    let interval = 100;
+    progressPercentage.current = 0;
+    if (command === 'start' && audioContext != null) {
+      if (elapsedTime.current === undefined){
+        elapsedTime.current = 0;
+      }
+      for ( let i = 0; i < sequence.length; i++) {
+          let beats = sequence[i].pattern.reduce((a,b) => a + b, 0);
+          //console.warn(beats);
+          //console.warn(sequence[i].tempo);
+          totalTime += beats * (60/sequence[i].tempo) * sequence[i].reps;
+      }
+      progressID.current = setInterval(() => {
+        elapsedTime.current += interval/1000;
+        progressPercentage.current = (elapsedTime.current / totalTime) * 100;
+        console.warn(elapsedTime.current);
+      }, interval);
+    } else if (command === 'pause'){
+        clearInterval(progressID.current);
+    } else if (command === 'stop'){
+      clearInterval(progressID.current);
+      elapsedTime.current = 0;
+      progressPercentage.current = 0;
+    }
+  }
 
 
   const handleStartSequence = () => {
-    gainNode.gain.value = volume;
-    if ( !sequenceRunning && !metronomeRunning ) {
-      nextInSequence.current = audioContext.currentTime + .1;
-      metronomeWorker.postMessage('seqStart');
-      setSequenceRunning(true);
-      setStartButtonIcon(faPause);
-    } else if (sequenceRunning) {
-      metronomeWorker.postMessage('seqStop');
-      setSequenceRunning(false);
-      nextInSequence.current = -1; // signals black blinker
-      setStartButtonIcon(faPlay);
+    if (gainNode && audioContext) {
+      gainNode.gain.value = volume;
+      if ( !sequenceRunning && !metronomeRunning ) {
+        metronomeWorker.postMessage('seqStart');
+        // a little extra time for first start
+        nextInSequence.current = audioContext.currentTime + .05;
+        setSequenceRunning(true);
+        runProgress('start');
+        setStartButtonIcon(faPause);
+      } else if (sequenceRunning) {
+        metronomeWorker.postMessage('seqStop');
+        setSequenceRunning(false);
+        runProgress('pause');
+        nextInSequence.current = -1; // signals black blinker
+        setStartButtonIcon(faPlay);
+      }
     }
   };
 
   const handleResetSequencer= () => {
     metronomeWorker.postMessage('seqStop');
+    runProgress('stop');
     resetSequencer();
   };
   
@@ -323,10 +415,10 @@ const SoundContext3 = () => {
   return (
   <>
   <div>Sounds Context3</div>
-  <div>
+  <div className = 'button-div'>
     <button onClick={handleStartSequence} disabled={metronomeRunning}>
       <FontAwesomeIcon  icon={startButtonIcon}/></button>
-    <button onClick={handleResetSequencer} disabled={metronomeRunning || nextInSequence.current === -1}><FontAwesomeIcon icon={faRefresh}/></button>
+    <button onClick={handleResetSequencer} disabled={metronomeRunning}><FontAwesomeIcon icon={faRefresh}/></button>
     <button onClick={handleStartMetronome} disabled={sequenceRunning}>Start / Stop Metronome</button>
     <label htmlFor = 'tempo'>Tempo: </label>
     <input type='number' id='tempo' name='tempo' min = '40' max = '208' 
@@ -334,8 +426,10 @@ const SoundContext3 = () => {
       onChange={handleTempo}/>
     <input id='vol-control' type='range' min='0' max='100' step='1' onChange={handleVolume}
     value={volume * 100}/>
-    <ProgressBar ref={progressRef} now={progressPercentage}
+    <ProgressBar  now={progressPercentage}
         variant='info'/>
+
+    <canvas ref={progressRef} className='anim-progress'></canvas>
 
     <canvas ref={blinkerRef} className='blinker'></canvas>
   </div>
