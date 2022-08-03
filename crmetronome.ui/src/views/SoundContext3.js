@@ -27,7 +27,6 @@ const SoundContext3 = () => {
           tempo: 160
         },
       ]);
-  const sequenceStarted = useRef();
   const requestAnimRef = useRef(); // stores requestAnimationFrame
   const requestAnimProgressRef = useRef(); // stores requestAnimationFrame
                                            // for progress bar
@@ -42,7 +41,6 @@ const SoundContext3 = () => {
   const visualCtxRef  = useRef(); // visual Context
   const visualCtxProgressRef  = useRef(); // visual Context for progress bar
   const nextNote = useRef(); // tracks next metronome beat
-  const firstInSequence = useRef(); // tracks beginning of sequence for progress bar
   const nextInSequence = useRef(); // tracks next sequence beat
   const iterator = useRef();
 
@@ -58,7 +56,6 @@ const SoundContext3 = () => {
    
   const resetSequencer = () => {
     setSequenceRunning(false);
-    sequenceStarted.current = false;
     // runProgress('stop');
     nextInSequence.current = -1; // signals black blinker
     // reset sequence to beginning.
@@ -157,7 +154,6 @@ const SoundContext3 = () => {
       progressTotal.current = 0;
       // nextNote.current = audioContext.currentTime + lookahead;
       // nextInSequence.current = audioContext.currentTime + lookahead;
-      firstInSequence.current = nextInSequence.current;
       metronomeWorker.onmessage = (e) => {
         if ( e.data === 'tick'){
           if (nextNote.current === -1) nextNote.current = audioContext.currentTime + lookahead;
@@ -343,7 +339,6 @@ const SoundContext3 = () => {
         // a little extra time for first start
         nextInSequence.current = audioContext.currentTime + .05;
         setSequenceRunning(true);
-        sequenceStarted.current = true;
         timeStamp.current = performance.now();
         // runProgress('start');
         setStartButtonIcon(faPause);
