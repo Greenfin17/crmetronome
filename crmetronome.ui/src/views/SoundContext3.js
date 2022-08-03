@@ -3,8 +3,7 @@ const metronomeWorker = new Worker('metronomeWorker.js');
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons';
-// import getProgress from '../data/helpers/calculators';
-
+import getProgress from '../data/helpers/calculators';
 
 const SoundContext3 = () => {
   // const [song, setSong] = useState({});
@@ -28,13 +27,15 @@ const SoundContext3 = () => {
           tempo: 160
         },
       ]);
+  const sequenceStarted = useRef();
   const requestAnimRef = useRef(); // stores requestAnimationFrame
   const requestAnimProgressRef = useRef(); // stores requestAnimationFrame
                                            // for progress bar
   // const timeRef = useRef(); // stores time of last beat
   const blinkerRef = useRef(); // DOM element for blinker
   const progressRef = useRef();
-  const progressID = useRef(); // ID for setTimeout for progress %
+  const timeStamp = useRef();
+  // const progressID = useRef(); // ID for setTimeout for progress %
   const elapsedTime = useRef(); // track sequence progress
   const progressPercentage = useRef();
   const progressTotal = useRef();
@@ -57,16 +58,18 @@ const SoundContext3 = () => {
    
   const resetSequencer = () => {
     setSequenceRunning(false);
-    runProgress('stop');
+    sequenceStarted.current = false;
+    // runProgress('stop');
     nextInSequence.current = -1; // signals black blinker
     // reset sequence to beginning.
     initializeIterator();
-    // reset progress bar
-    progressTotal.current = 0;
-    progressPercentage.current = 0;
+    // initialize other counters
     elapsedTime.current = 0;
-    debugger;
-    requestAnimProgressRef.current = requestAnimationFrame(drawProgress);
+    // timeStamp.current = 0;
+    progressPercentage.current = 0;
+    progressTotal.current = 0;
+    requestAnimationFrame(drawBlankProgress);
+    cancelAnimationFrame(requestAnimProgressRef.current);
     setStartButtonIcon(faPlay);
   };
     
@@ -93,11 +96,12 @@ const SoundContext3 = () => {
   // blinker turns black when no metronome or sequence is running
   const drawCanvas = () => {
     let color = 'blue';
+    let lookahead = .16;
     if (nextNote.current === -1 && !sequenceRunning || nextInSequence.current === -1 && !metronomeRunning) {
       color = 'black';
-    } else if ( Math.abs(audioContext.currentTime - nextNote.current) < .16 ) {
+    } else if ( Math.abs(audioContext.currentTime - nextNote.current) < lookahead ) {
       color = 'red';
-    } else if ( Math.abs(audioContext.currentTime - nextInSequence.current) < .16) {
+    } else if ( Math.abs(audioContext.currentTime - nextInSequence.current) < lookahead) {
       color = 'red';
     }
 
@@ -109,31 +113,46 @@ const SoundContext3 = () => {
     
   };
 
-  
-  const drawProgress = () => {
+  const drawProgress = (time) => {
     const color = 'blue';
 
     if (visualCtxProgressRef.current != null && audioContext != null) {
+      if (elapsedTime.current === undefined){
+        elapsedTime.current = 0;
+      }
+      if (timeStamp.current === undefined){
+        timeStamp.current = 0;
+      }
+
       const canvasElement = progressRef.current;
       visualCtxProgressRef.current.clearRect(0,0, canvasElement.width, canvasElement.height );
       visualCtxProgressRef.current.fillStyle = color; 
       // var x = Math.floor(canvasElement.width / 6);
-
+      if (timeStamp.current === 0){
+        elapsedTime.current = 0;
+      } else {
+        elapsedTime.current += time - timeStamp.current;
+      }
+      timeStamp.current = time;
+      progressPercentage.current = getProgress(sequence, elapsedTime.current / 1000)
       var x = (progressPercentage.current / 100) * canvasElement.width;
       var y = canvasElement.height;
       // console.warn('percentage.current is ' + progressPercentage.current);
       visualCtxProgressRef.current.fillRect(0, 0, x, y);
-      if (sequenceRunning) {
-        requestAnimProgressRef.current = requestAnimationFrame(drawProgress);
-      }
+      requestAnimProgressRef.current = requestAnimationFrame(drawProgress);
     }
   }
+
+  const drawBlankProgress = () => {
+      const canvasElement = progressRef.current;
+      visualCtxProgressRef.current.clearRect(0,0, canvasElement.width, canvasElement.height );
+  };
   
   
   // metronome triggered by metronomeWorker  
   useEffect(() => {
     if(audioContext) {
-      const lookahead = .1 
+      const lookahead = .1
       initializeIterator();
       progressTotal.current = 0;
       // nextNote.current = audioContext.currentTime + lookahead;
@@ -189,9 +208,10 @@ const SoundContext3 = () => {
           }
           // automatically stop worker messages when sequence is completed.
         } else { 
+          cancelAnimationFrame(requestAnimProgressRef.current);
           metronomeWorker.postMessage('seqStop');
           resetSequencer();
-          runProgress('stop');
+          // runProgress('stop');
         }
       }
     }
@@ -286,52 +306,6 @@ const SoundContext3 = () => {
   };
 
   /*
-  const schedule_measure = (pattern, tempo, start) => {
-    const beats = pattern.reduce((a,b) => a + b, 0);
-    let strong = false;
-    for ( let i = 0, j = 0, k = 0; i < beats; i++) {
-      if ( j === 0 ) strong = true; else strong = false;
-      runOscillator(start, strong );
-      start = start + 60/tempo;
-      j++;
-      if ( j === pattern[k]) {
-        j = 0;
-        k++;
-      }
-    }
-    return start;
-  };
-
-  const schedule_measures = (unit, start) => {
-    for ( let i = 0; i < unit.reps; i++) {
-      start = schedule_measure(unit.pattern, unit.tempo, start);
-    }
-    return start;
-  };
-
-   
-  const schedule_sequence = () => {
-    const lookahead = .2
-    const sequence =  
-      [
-        {
-          pattern: [3,2],
-          reps: 2, 
-          tempo: 120
-        },
-        {
-          pattern: [2,3,2],
-          reps: 3,
-          tempo: 160
-        },
-      ];
-    let start = audioContext.currentTime + lookahead;
-    for ( let i = 0; i < sequence.length; i++) {
-      start = schedule_measures(sequence[i], start);
-    }   
-  }
-  */
-  
   const runProgress = (command) => {
     let totalTime = 0;
     let interval = 100;
@@ -359,7 +333,7 @@ const SoundContext3 = () => {
       progressPercentage.current = 0;
     }
   }
-
+  */
 
   const handleStartSequence = () => {
     if (gainNode && audioContext) {
@@ -369,12 +343,14 @@ const SoundContext3 = () => {
         // a little extra time for first start
         nextInSequence.current = audioContext.currentTime + .05;
         setSequenceRunning(true);
-        runProgress('start');
+        sequenceStarted.current = true;
+        timeStamp.current = performance.now();
+        // runProgress('start');
         setStartButtonIcon(faPause);
       } else if (sequenceRunning) {
         metronomeWorker.postMessage('seqStop');
         setSequenceRunning(false);
-        runProgress('pause');
+        // runProgress('pause');
         nextInSequence.current = -1; // signals black blinker
         setStartButtonIcon(faPlay);
       }
@@ -383,7 +359,8 @@ const SoundContext3 = () => {
 
   const handleResetSequencer= () => {
     metronomeWorker.postMessage('seqStop');
-    runProgress('stop');
+    // runProgress('stop');
+    // cancelAnimationFrame(requestAnimProgressRef.current);
     resetSequencer();
   };
   
