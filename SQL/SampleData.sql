@@ -5,6 +5,10 @@ Insert into Excerpts (Measures, Composition) values ('Letter C to D', '9AF2A5E0-
 Insert into Patterns (Pattern) values ('3,2');
 Insert into Patterns (Pattern) values ('2,3');
 Insert into Patterns (Pattern) values ('2,3,2');
-Insert into dbo.Segments (Excerpt, Position, Pattern, Tempo, Repetitions) values 
+
+Insert into Segments (Excerpt, Position, Pattern, Tempo, Repetitions) values 
 	('B28D70AA-C494-4E5B-9514-524BF5BCFD86', '1', 'B7EFBEE8-FDFD-4244-857C-31B92812C012',
 	 '60', '2');
+Insert into Segments (Excerpt, Position, Pattern, Tempo, Repetitions) values 
+	('B28D70AA-C494-4E5B-9514-524BF5BCFD86', '2', 'B32995CE-E1BB-4D16-A56D-50B6B6940C6E',
+	 '120', '2');
