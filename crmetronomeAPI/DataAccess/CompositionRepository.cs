@@ -75,7 +75,7 @@ namespace crmetronomeAPI.DataAccess
             return id;
         }
 
-        internal Composition UpdateComposition(Guid composerId, Composition compositionObj)
+        internal Composition UpdateComposition(Guid compositionID, Composition compositionObj)
         {
             using var db = new SqlConnection(_connectionString);
             var sql = @"UPDATE Compositions 
@@ -89,7 +89,7 @@ namespace crmetronomeAPI.DataAccess
                         WHERE ID = @ID";
             var parameters = new
             {
-                ID = compositionObj.ID,
+                ID = compositionID,
                 Title = compositionObj.Title,
                 Catalog = compositionObj.Catalog,
                 Composer = compositionObj.Composer,
