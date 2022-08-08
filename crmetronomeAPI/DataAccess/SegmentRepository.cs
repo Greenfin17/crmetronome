@@ -9,29 +9,29 @@ using crmetronomeAPI.Models;
 
 namespace crmetronomeAPI.DataAccess
 {
-    public class PatternRepository
+    public class SegmentRepository
     {
         readonly string _connectionString;
 
-        public PatternRepository(IConfiguration config)
+        public SegmentRepository(IConfiguration config)
         {
             _connectionString = config.GetConnectionString("Metronome");
         }
 
-        internal IEnumerable<Pattern> GetAll()
+        internal IEnumerable<Segment> GetAll()
         {
             using var db = new SqlConnection(_connectionString);
 
-            var patterns = db.Query<Pattern>(@"SELECT * From Patterns");
-            return patterns;
+            var segments = db.Query<Segment>(@"SELECT * From Patterns");
+            return segments;
         }
 
-        public Pattern GetPatternByID(Guid id)
+        public Segment GetSegmentByID(Guid id)
         {
             using var db = new SqlConnection(_connectionString);
-            var sql = @"SELECT * FROM Patterns
+            var sql = @"SELECT * FROM Segments 
                         WHERE ID = @ID";
-            var result = db.QueryFirstOrDefault<Pattern>(sql, new { ID = id});
+            var result = db.QueryFirstOrDefault<Segment>(sql, new { ID = id });
             return result;
         }
 
@@ -39,9 +39,9 @@ namespace crmetronomeAPI.DataAccess
         {
             bool returnVal = false;
             using var db = new SqlConnection(_connectionString);
-            var sql = @"SELECT * FROM Patterns
+            var sql = @"SELECT * FROM Segments
                         WHERE ID = @ID";
-            var result = db.QueryFirstOrDefault<Pattern>(sql, new { ID = id});
+            var result = db.QueryFirstOrDefault<Segment>(sql, new { ID = id });
             if (result != null)
             {
                 returnVal = true;
@@ -49,13 +49,12 @@ namespace crmetronomeAPI.DataAccess
             return returnVal;
         }
 
-        internal Guid AddPattern(Pattern patternObj)
+        internal Guid AddSegment(Segment patternObj)
         {
             using var db = new SqlConnection(_connectionString);
             Guid id = new();
-            var sql = @"IF NOT EXISTS ( SELECT ID FROM Patterns WHERE BeatPattern = @BeatPattern
-                            AND CreatedBy = @CreatedBy) INSERT INTO Patterns (CreatedBy, Shared, BeatPattern)
-                        VALUES (@CreatedBy, @Shared, @BeatPattern)
+            var sql = @"INSERT INTO Segments (Excerpt, Position, Pattern, Tempo, Repetitions)
+                        VALUES (@Excerpt, @Position, @Pattern, @Tempo, @Repetitions)
                         OUTPUT Inserted.ID";
             id = db.ExecuteScalar<Guid>(sql, patternObj);
             if (!id.Equals(Guid.Empty))
@@ -65,38 +64,43 @@ namespace crmetronomeAPI.DataAccess
             return id;
         }
 
-        internal Pattern UpdatePattern(Guid patternID, Pattern patternObj)
+        internal Segment UpdateSegment(Guid segmentID, Segment segmentObj)
         {
             using var db = new SqlConnection(_connectionString);
-            var sql = @"UPDATE Patterns 
+            var sql = @"UPDATE Segments
                             SET ID = @ID,
-                            AddedBy = @AddedBy,
-                            BeatPattern = @BeatPattern,
-                            Shared = @Shared
+                            Excerpt = @Excerpt,
+                            Position = @Position,
+                            Pattern = @Pattern,
+                            Tempo = @Tempo,
+                            Repetitions = @Repetitions
                         OUTPUT Inserted.*
                         WHERE ID = @ID";
 
-            var parameter = new
+            var parameters = new
             {
-                ID = patternID,
-                CreatedBy = patternObj.CreatedBy,
-                Pattern = patternObj.BeatPattern
+                ID = segmentID,
+                Excerpt = segmentObj.Excerpt,
+                Position = segmentObj.Position,
+                Pattern = segmentObj.Pattern,
+                Tempo = segmentObj.Tempo,
+                Repetitions = segmentObj.Repetitions
             };
 
-            var result = db.QuerySingleOrDefault<Pattern>(sql, parameter);
+            var result = db.QuerySingleOrDefault<Segment>(sql, parameters);
             return result;
         }
 
-        internal bool DeletePattern(Guid patternID)
+        internal bool DeleteSegment(Guid segmentID)
         {
             bool returnVal = false;
             using var db = new SqlConnection(_connectionString);
-            var sql = @"DELETE from Patterns
+            var sql = @"DELETE from Segments 
                         OUTPUT Deleted.Id
                         WHERE ID = @ID";
             var parameter = new
             {
-                ID = patternID
+                ID = segmentID 
             };
             var result = db.Query(sql, parameter);
             if (result.Any())
@@ -107,3 +111,4 @@ namespace crmetronomeAPI.DataAccess
         }
     }
 }
+

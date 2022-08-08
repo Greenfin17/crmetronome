@@ -9,6 +9,7 @@ namespace crmetronomeAPI.Models
     {
         public Guid ID { get; set; }
         public Guid CreatedBy { get; set; }
+        public bool Shared { get; set; }
         public string BeatPattern { get; set; }
     }
 }

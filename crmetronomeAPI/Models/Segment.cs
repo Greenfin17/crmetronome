@@ -7,12 +7,12 @@ namespace crmetronomeAPI.Models
 {
     public class Segment
 	{
-		Guid ID { get; set; }
-		Guid Excerpt { get; set; }
-		int Position { get; set; }
-		Guid Pattern { get; set; }
-		decimal tempo { get; set; }
-		int Repetitions { get; set; }
+		public Guid ID { get; set; }
+		public Guid Excerpt { get; set; }
+		public int Position { get; set; }
+		public Guid Pattern { get; set; }
+		public decimal Tempo { get; set; }
+		public int Repetitions { get; set; }
 
     }
 }

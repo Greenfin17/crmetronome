@@ -1,9 +1,46 @@
-CREATE DATABASE Metronome
+--CREATE DATABASE Metronome
+
+IF EXISTS (SELECT * FROM Information_schema.TABLES WHERE TABLE_NAME = 'Excerpts') DELETE from Excerpts;
+IF EXISTS (SELECT * FROM Information_schema.TABLES WHERE TABLE_NAME = 'Segments') DELETE from Segments;
+IF EXISTS (SELECT * FROM Information_schema.TABLES WHERE TABLE_NAME = 'Patterns') DELETE from Patterns;
+IF EXISTS (SELECT * FROM Information_schema.TABLES WHERE TABLE_NAME = 'Compositions') DELETE from Compositions;
+IF EXISTS (SELECT * FROM Information_schema.TABLES WHERE TABLE_NAME = 'Composers') DELETE from Composers;
+IF EXISTS (SELECT * FROM Information_schema.TABLES WHERE TABLE_NAME = 'Users') DELETE from Users;
+IF EXISTS (SELECT * FROM Information_schema.TABLES WHERE TABLE_NAME = 'Roles') DELETE from Roles;
+
+
+ALTER TABLE dbo.Excerpts
+	DROP CONSTRAINT FK_Excerpts_Compositions;
+ALTER TABLE dbo.Excerpts
+	DROP CONSTRAINT FK_Excerpts_Users;
+
+ALTER TABLE dbo.Segments
+	DROP CONSTRAINT FK_Segments_Excerpts;
+ALTER TABLE dbo.Segments
+	DROP CONSTRAINT FK_Segments_Patterns;
+
+ALTER TABLE dbo.Patterns
+	DROP CONSTRAINT FK_Patterns_Users
+
+ALTER TABLE dbo.Compositions
+	DROP CONSTRAINT FK_Compositions_Composers
+ALTER TABLE dbo.Compositions
+	DROP CONSTRAINT FK_Compositions_Users
+
+ALTER TABLE dbo.Composers
+	DROP CONSTRAINT FK_Composers_Users
+
+ALTER TABLE dbo.Users
+	DROP CONSTRAINT FK_Users_Roles
+	
+DROP TABLE IF EXISTS dbo.Roles
 CREATE TABLE Roles
 (
 	ID uniqueidentifier NOT NULL Primary Key default(newid()),
 	Name varchar(50)
 )
+
+DROP TABLE IF EXISTS dbo.Users
 CREATE TABLE dbo.Users
 (
 	Id uniqueidentifier NOT NULL Primary Key default(newid()),
@@ -18,6 +55,7 @@ CREATE TABLE dbo.Users
 		REFERENCES Roles (ID)
 );
 
+DROP TABLE IF EXISTS dbo.Composers
 CREATE TABLE dbo.Composers
 (
 	ID uniqueidentifier NOT NULL Primary Key default(newid()),
@@ -28,10 +66,11 @@ CREATE TABLE dbo.Composers
 	Middle varchar (50),
 	Birth date,
 	Death date
-	CONSTRAINT FK_Composer_User FOREIGN KEY (AddedBy)
+	CONSTRAINT FK_Composers_Users FOREIGN KEY (AddedBy)
 		REFERENCES Users (ID)
 );
 
+DROP TABLE IF EXISTS dbo.Compositions
 CREATE TABLE dbo.Compositions
 (
 	ID uniqueidentifier NOT NULL Primary Key default(newid()),
@@ -46,13 +85,19 @@ CREATE TABLE dbo.Compositions
 		REFERENCES Users (ID)
 );
 
+DROP TABLE IF EXISTS dbo.Patterns
 CREATE TABLE dbo.Patterns
 (
 	ID uniqueidentifier NOT NULL Primary Key default(newid()),
-	Pattern varchar(500),
-	CreatedBy uniqueidentifier NOT NULL	
+	CreatedBy uniqueidentifier NOT NULL,
+	Shared bit,
+	BeatPattern varchar(500),
+	CONSTRAINT FK_Patterns_Users FOREIGN KEY (CreatedBy)
+		REFERENCES dbo.Users (ID)
+	
 );
 
+DROP TABLE IF EXISTS dbo.Excerpts
 CREATE TABLE dbo.Excerpts
 (
 	ID uniqueidentifier NOT NULL Primary Key default(newid()),
@@ -61,13 +106,14 @@ CREATE TABLE dbo.Excerpts
 	Measures varchar (50),
 	CreatedBy uniqueidentifier NOT NULL,
 	Shared bit,
-	Constraint FK_Excerpts_Compositions FOREIGN KEY (Composition)
+	CONSTRAINT FK_Excerpts_Compositions FOREIGN KEY (Composition)
 		REFERENCES dbo.Compositions (ID),
-	Constraint FK_Excerpts_Users FOREIGN KEY (CreatedBy)
+	CONSTRAINT FK_Excerpts_Users FOREIGN KEY (CreatedBy)
 		REFERENCES dbo.Users (ID)
 );
 
-CREATE TABLE Seqments
+DROP TABLE IF EXISTS dbo.Segments
+CREATE TABLE dbo.Segments
 (
 	ID uniqueidentifier NOT NULL Primary Key default(newid()),
 	Excerpt uniqueidentifier NOT NULL,
