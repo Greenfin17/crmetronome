@@ -18,11 +18,14 @@ Insert into Patterns (Pattern, CreatedBy, Shared) values ('2,3',
 Insert into Patterns (Pattern, CreatedBy, Shared) values ('3,2,3', 
 	(SELECT ID FROM Users WHERE LastName = 'Linkletter'), 1);
 
-
-
 Insert into Segments (Excerpt, Position, Pattern, Tempo, Repetitions) values 
-	('B28D70AA-C494-4E5B-9514-524BF5BCFD86', '1', 'B7EFBEE8-FDFD-4244-857C-31B92812C012',
-	 '60', '2');
+	('7D091755-63E2-4A38-AD38-E9A27859B28E', '1', 
+	(SELECT ID FROM Patterns WHERE BeatPattern = '2,3'), 60, 2);
+Insert into Segments (Excerpt, Position, Pattern, Tempo, Repetitions) values 
+	('7D091755-63E2-4A38-AD38-E9A27859B28E', '2', 
+	(SELECT ID FROM Patterns WHERE BeatPattern = '3,2,3'), 120, 2);
+
+
 Insert into Segments (Excerpt, Position, Pattern, Tempo, Repetitions) values 
 	('B28D70AA-C494-4E5B-9514-524BF5BCFD86', '2', 'B32995CE-E1BB-4D16-A56D-50B6B6940C6E',
 	 '120', '2');
