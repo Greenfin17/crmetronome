@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace crmetronomeAPI.Controllers
 {
     [ApiController]
-    [Route("api/patterns")]
+    [Route("api/segments")]
     // [Authorize]
 
     public class SegmentController : ControllerBase

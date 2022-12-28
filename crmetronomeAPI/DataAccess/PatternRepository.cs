@@ -55,8 +55,8 @@ namespace crmetronomeAPI.DataAccess
             Guid id = new();
             var sql = @"IF NOT EXISTS ( SELECT ID FROM Patterns WHERE BeatPattern = @BeatPattern
                             AND CreatedBy = @CreatedBy) INSERT INTO Patterns (CreatedBy, Shared, BeatPattern)
-                        VALUES (@CreatedBy, @Shared, @BeatPattern)
-                        OUTPUT Inserted.ID";
+                            OUTPUT Inserted.ID
+                            VALUES (@CreatedBy, @Shared, @BeatPattern)";
             id = db.ExecuteScalar<Guid>(sql, patternObj);
             if (!id.Equals(Guid.Empty))
             {

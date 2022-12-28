@@ -9,39 +9,39 @@ using crmetronomeAPI.Models;
 
 namespace crmetronomeAPI.DataAccess
 {
-    public class SegmentRepository
+    public class ExcerptRepository
     {
         readonly string _connectionString;
 
-        public SegmentRepository(IConfiguration config)
+        public ExcerptRepository(IConfiguration config)
         {
             _connectionString = config.GetConnectionString("Metronome");
         }
 
-        internal IEnumerable<Segment> GetAll()
+        internal IEnumerable<Excerpt> GetAll()
         {
             using var db = new SqlConnection(_connectionString);
 
-            var segments = db.Query<Segment>(@"SELECT * From Segments");
+            var segments = db.Query<Excerpt>(@"SELECT * From Excerpts");
             return segments;
         }
 
-        public Segment GetSegmentByID(Guid id)
+        public Excerpt GetExcerptByID(Guid id)
         {
             using var db = new SqlConnection(_connectionString);
-            var sql = @"SELECT * FROM Segments 
+            var sql = @"SELECT * FROM Excerpts 
                         WHERE ID = @ID";
-            var result = db.QueryFirstOrDefault<Segment>(sql, new { ID = id });
+            var result = db.QueryFirstOrDefault<Excerpt>(sql, new { ID = id });
             return result;
         }
 
-        public bool SegmentExists(Guid id)
+        public bool ExcerptExists(Guid id)
         {
             bool returnVal = false;
             using var db = new SqlConnection(_connectionString);
-            var sql = @"SELECT * FROM Segments
+            var sql = @"SELECT * FROM Excerpts
                         WHERE ID = @ID";
-            var result = db.QueryFirstOrDefault<Segment>(sql, new { ID = id });
+            var result = db.QueryFirstOrDefault<Excerpt>(sql, new { ID = id });
             if (result != null)
             {
                 returnVal = true;
@@ -49,13 +49,13 @@ namespace crmetronomeAPI.DataAccess
             return returnVal;
         }
 
-        internal Guid AddSegment(Segment patternObj)
+        internal Guid AddExcerpt(Excerpt patternObj)
         {
             using var db = new SqlConnection(_connectionString);
             Guid id = new();
-            var sql = @"INSERT INTO Segments (Excerpt, Position, Pattern, Tempo, Repetitions)
+            var sql = @"INSERT INTO Excerpts (Composition, Movement, Measures, CreatedBy, Shared)
                         OUTPUT Inserted.ID
-                        VALUES (@Excerpt, @Position, @Pattern, @Tempo, @Repetitions)";
+                        VALUES (@Composition, @Movement, @Measures, @CreatedBy, @Shared)";
             id = db.ExecuteScalar<Guid>(sql, patternObj);
             if (!id.Equals(Guid.Empty))
             {
@@ -64,43 +64,43 @@ namespace crmetronomeAPI.DataAccess
             return id;
         }
 
-        internal Segment UpdateSegment(Guid segmentID, Segment segmentObj)
+        internal Excerpt UpdateExcerpt(Guid segmentID, Excerpt segmentObj)
         {
             using var db = new SqlConnection(_connectionString);
-            var sql = @"UPDATE Segments
+            var sql = @"UPDATE Excerpts
                             SET ID = @ID,
-                            Excerpt = @Excerpt,
-                            Position = @Position,
-                            Pattern = @Pattern,
-                            Tempo = @Tempo,
-                            Repetitions = @Repetitions
+                            Composition = @Composition,
+                            Movement = @Movement,
+                            Measures = @Measures,
+                            CreatedBy = @CreatedBy,
+                            Shared = @Shared
                         OUTPUT Inserted.*
                         WHERE ID = @ID";
 
             var parameters = new
             {
                 ID = segmentID,
-                Excerpt = segmentObj.Excerpt,
-                Position = segmentObj.Position,
-                Pattern = segmentObj.Pattern,
-                Tempo = segmentObj.Tempo,
-                Repetitions = segmentObj.Repetitions
+                Composition = segmentObj.Composition,
+                Movement = segmentObj.Movement,
+                Measures = segmentObj.Measures,
+                CreatedBy = segmentObj.CreatedBy,
+                Shared = segmentObj.Shared
             };
 
-            var result = db.QuerySingleOrDefault<Segment>(sql, parameters);
+            var result = db.QuerySingleOrDefault<Excerpt>(sql, parameters);
             return result;
         }
 
-        internal bool DeleteSegment(Guid segmentID)
+        internal bool DeleteExcerpt(Guid segmentID)
         {
             bool returnVal = false;
             using var db = new SqlConnection(_connectionString);
-            var sql = @"DELETE from Segments 
+            var sql = @"DELETE from Excerpts 
                         OUTPUT Deleted.Id
                         WHERE ID = @ID";
             var parameter = new
             {
-                ID = segmentID 
+                ID = segmentID
             };
             var result = db.Query(sql, parameter);
             if (result.Any())
@@ -111,4 +111,5 @@ namespace crmetronomeAPI.DataAccess
         }
     }
 }
+
 

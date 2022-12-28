@@ -32,6 +32,8 @@ namespace crmetronomeAPI
             services.AddTransient<ComposerRepository>();
             services.AddTransient<CompositionRepository>();
             services.AddTransient<PatternRepository>();
+            services.AddTransient<SegmentRepository>();
+            services.AddTransient<ExcerptRepository>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

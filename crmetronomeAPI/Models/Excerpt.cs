@@ -7,11 +7,11 @@ namespace crmetronomeAPI.Models
 {
     public class Excerpt
     {
-		Guid ID { get; set; }
-		Guid Composition { get; set; }
-		string Movement { get; set; }
-		string Measures { get; set; }
-		Guid CreatedBy { get; set; }
-		bool shared { get; set; }
+		public Guid ID { get; set; }
+		public Guid Composition { get; set; }
+		public string Movement { get; set; }
+		public string Measures { get; set; }
+		public Guid CreatedBy { get; set; }
+		public bool Shared { get; set; }
     }
 }
