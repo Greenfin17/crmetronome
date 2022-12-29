@@ -3,7 +3,7 @@ const metronomeWorker = new Worker('metronomeWorker.js');
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons';
-import getProgress from '../data/helpers/calculators';
+import getProgress from '../helpers/calculators';
 
 const SoundContext3 = () => {
   // const [song, setSong] = useState({});
