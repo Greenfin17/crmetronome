@@ -386,7 +386,7 @@ const SoundContext3 = () => {
   
   return (
   <>
-  <div>Sounds Context3</div>
+  <div>Metronome</div>
   <div className = 'button-div'>
     <button onClick={handleStartSequence} disabled={metronomeRunning}>
       <FontAwesomeIcon  icon={startButtonIcon}/></button>

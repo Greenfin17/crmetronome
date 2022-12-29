@@ -14,14 +14,8 @@ const NavBar = () => (
           <Link to='/'>
             Home
           </Link>
-          <Link to='/soundContext1' className='menu-item'>
-            SoundContext1
-          </Link>
-          <Link to='/soundContext2' className='menu-item'>
-            Sound Context2
-          </Link>
           <Link to='/soundContext3' className='menu-item'>
-            Sound Context3
+            Metronome
           </Link>
         </NavItem>
       </Nav>
