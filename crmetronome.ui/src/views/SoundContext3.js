@@ -4,6 +4,7 @@ import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons';
 import getProgress from '../helpers/calculators';
+import SequenceSelector from '../components/SequenceSelector';
 
 const SoundContext3 = () => {
   // const [song, setSong] = useState({});
@@ -388,6 +389,7 @@ const SoundContext3 = () => {
   <>
   <div>Metronome</div>
   <div className = 'button-div'>
+    <SequenceSelector sequence={sequence} />
     <button onClick={handleStartSequence} disabled={metronomeRunning}>
       <FontAwesomeIcon  icon={startButtonIcon}/></button>
     <button onClick={handleResetSequencer} disabled={metronomeRunning}><FontAwesomeIcon icon={faRefresh}/></button>

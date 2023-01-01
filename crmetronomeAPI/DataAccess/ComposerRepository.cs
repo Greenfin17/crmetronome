@@ -75,7 +75,7 @@ namespace crmetronomeAPI.DataAccess
             return id;
         }
 
-        internal Composer UpdateComposer(Guid composerId, Composer composerObj)
+        internal Composer UpdateComposer(Guid composerID, Composer composerObj)
         {
             using var db = new SqlConnection(_connectionString);
             var sql = @"UPDATE Composers 

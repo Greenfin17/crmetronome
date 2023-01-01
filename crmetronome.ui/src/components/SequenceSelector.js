@@ -1,31 +1,49 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Select from 'react-select';
-import { propTypes } from 'prop-types';
+import PropTypes from 'prop-types';
 import getAllComposers from '../helpers/data/composerData';
 
 const SequenceSelector = (sequence) => {
   const [composerSelectOptions, setComposerSelectOptions] = useState(null);
-  useEffect = () => {
+  useEffect(() => {
+    const composerOptionsArr = [];
     let mounted = true;
-    if (mounted) {
-      getAllComposers().then(composerArray) => {
-
+    console.warn(sequence);
+    getAllComposers().then((composerArray) => {
+      console.warn('in useEffect');
+      for (let i = 0; i < composerArray.length; i += 1) {
+        const option = {
+          value: composerArray[i].ID,
+          label: `${composerArray[i].last}, ${composerArray[i].first}`
+        };
+        composerOptionsArr.push(option);
       }
-      
-    }
+        if (mounted){
+          setComposerSelectOptions(composerOptionsArr);
+        }
+    })
+      .catch(setComposerSelectOptions([]));
+    
+      return function cleanup() {
+      mounted = false;
+    };
+  }, []);
 
-
-  }
+  const handleComposerSelection = () => {
+    console.warn('handleComposerSelection');
+  };
 
   return (
     <dir className='select-sequence'>
-      <Select 
+      <h3>SequenceSelector</h3>
+      <Select options={composerSelectOptions} 
+        onChange={handleComposerSelection}/>
     </dir>
   )
 }
 
 SequenceSelector.propTypes = {
-  sequence: propTypes.object
+  sequence: PropTypes.array
 };
 
 export default SequenceSelector;
