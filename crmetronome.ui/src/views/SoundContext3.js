@@ -176,7 +176,7 @@ const SoundContext3 = () => {
           const beats = sequence[iterator.current.i].pattern.reduce((a,b) => a + b, 0);
           let strong;
           // console.warn('next in sequence: ' + nextInSequence.current);
-          // console.warn('curren time: ' + audioContext.currentTime);
+          // console.warn('current time: ' + audioContext.currentTime);
           if ( nextInSequence.current < audioContext.currentTime + lookahead){
             if ( iterator.current.k === 0 ) strong = true; else strong = false;
             runOscillator(nextInSequence.current, strong );
@@ -333,6 +333,7 @@ const SoundContext3 = () => {
   */
 
   const handleStartSequence = () => {
+    console.warn('handleStartSequence');
     if (gainNode && audioContext) {
       gainNode.gain.value = volume;
       if ( !sequenceRunning && !metronomeRunning ) {

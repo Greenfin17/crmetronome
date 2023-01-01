@@ -14,7 +14,8 @@ const SequenceSelector = (sequence) => {
       for (let i = 0; i < composerArray.length; i += 1) {
         const option = {
           value: composerArray[i].ID,
-          label: `${composerArray[i].last}, ${composerArray[i].first}`
+          label: `${composerArray[i].last}, ${composerArray[i].first}`,
+          disabled: false
         };
         composerOptionsArr.push(option);
       }
