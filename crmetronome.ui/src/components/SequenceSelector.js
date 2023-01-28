@@ -3,17 +3,28 @@ import Select from 'react-select';
 import PropTypes from 'prop-types';
 import getAllComposers from '../helpers/data/composerData';
 
-const SequenceSelector = (sequence) => {
+const SequenceSelector = () => {
   const [composerSelectOptions, setComposerSelectOptions] = useState(null);
+  const selectStyles = {
+    control: (baseStyles) => ({
+      ...baseStyles,
+      background: '#aaaaaa'
+    }),
+
+    option: (baseStyles, state) => ({
+      ...baseStyles,
+      "&:hover" : { background: 'purple'},
+      background: state.isSelected? 'red': 'blue',
+    })
+  };
   useEffect(() => {
     const composerOptionsArr = [];
     let mounted = true;
-    console.warn(sequence);
     getAllComposers().then((composerArray) => {
       console.warn('in useEffect');
       for (let i = 0; i < composerArray.length; i += 1) {
         const option = {
-          value: composerArray[i].ID,
+          value: composerArray[i].id,
           label: `${composerArray[i].last}, ${composerArray[i].first}`,
           disabled: false
         };
@@ -35,11 +46,13 @@ const SequenceSelector = (sequence) => {
   };
 
   return (
-    <dir className='select-sequence'>
-      <h3>SequenceSelector</h3>
-      <Select options={composerSelectOptions} 
-        onChange={handleComposerSelection}/>
-    </dir>
+    <div className='select-sequence'>
+      <div className='select-composer'>
+        <h3>Select Composer</h3>
+        <Select styles={selectStyles} options={composerSelectOptions} 
+          onChange={handleComposerSelection}/>
+      </div>
+    </div>
   )
 }
 
