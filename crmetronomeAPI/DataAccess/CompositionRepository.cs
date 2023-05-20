@@ -35,6 +35,16 @@ namespace crmetronomeAPI.DataAccess
             return result;
         }
 
+        internal IEnumerable<Composition> GetCompositionsByComposerID(Guid composerID)
+        {
+            using var db = new SqlConnection(_connectionString);
+            var sql = @"SELECT * from Compositions
+                        WHERE Composer = @composerId";
+            var compositions = db.Query<Composition>(sql, new { composerId = composerID });
+            return compositions;
+
+        }
+
         internal IEnumerable<Composition> GetCompositionByTitle(string title)
         {
             using var db = new SqlConnection(_connectionString);

@@ -25,11 +25,7 @@ namespace crmetronomeAPI.Controllers
         public IActionResult GetAllCompositions()
         {
             var result = _compositionRepository.GetAll();
-            if (result.Count() >= 0)
-            {
-                return Ok(result);
-            }
-            else return NotFound("No compositions");
+            return Ok(result);
         }
 
         [HttpGet("{compositionID}")]
@@ -42,6 +38,15 @@ namespace crmetronomeAPI.Controllers
             }
             else return NotFound($"Composer with id ${compositionID} not found.");
         }
+
+        [HttpGet("composer/{composerID}")]
+        public IActionResult GetCompositionsByComposerID(Guid composerID)
+        {
+            var result = _compositionRepository.GetCompositionsByComposerID(composerID);
+            // no results is OK
+            return Ok(result);
+        }
+
 
         [HttpGet("title/{title}")]
         public IActionResult GetCompositionByTitle(string title)

@@ -27,11 +27,7 @@ namespace crmetronomeAPI.Controllers
         public IActionResult GetAllComposers()
         {
             var result = _composerRepository.GetAll();
-            if (result.Count() >= 0)
-            {
-                return Ok(result);
-            }
-            else return NotFound("No composers");
+            return Ok(result);
         }
 
         [HttpGet("{composerId}")]
