@@ -39,7 +39,13 @@ namespace crmetronomeAPI.Controllers
             else return NotFound($"Excerpt with ID ${excerptID} not found.");
         }
 
-        
+        [HttpGet("composition/{compositionID}")]
+        public IActionResult getExcerptsByCompositionID(Guid compositionID)
+        {
+            var result = _excerptRepository.GetExcerptsByComposition(compositionID);
+            return Ok(result);
+        }
+
         [HttpPost]
         public IActionResult AddExcerpt(Excerpt excerptObj)
         {
