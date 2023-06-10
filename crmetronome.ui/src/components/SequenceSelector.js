@@ -3,11 +3,14 @@ import Select from 'react-select';
 import PropTypes from 'prop-types';
 import getAllComposers from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
+import getExcerptsByCompositionID from '../helpers/data/excerptData';
 
 const SequenceSelector = () => {
   const [composerSelectOptions, setComposerSelectOptions] = useState(null);
   const [compositionSelectOptions, setCompositionSelectOptions] = useState(null);
+  const [excerptSelectOptions, setExcerptSelectOptions] = useState(null);
   const compositionRef = useRef();
+  const excerptRef = useRef();
   const selectStyles = {
     control: (baseStyles) => ({
       ...baseStyles,
@@ -24,7 +27,6 @@ const SequenceSelector = () => {
     const composerOptionsArr = [];
     let mounted = true;
     getAllComposers().then((composerArray) => {
-      console.warn('in useEffect');
       for (let i = 0; i < composerArray.length; i += 1) {
         const option = {
           value: composerArray[i].id,
@@ -45,8 +47,8 @@ const SequenceSelector = () => {
   }, []);
 
   const handleComposerSelection = (selectedComposer) => {
-    console.warn('handleComposerSelection');
-    console.warn(selectedComposer);
+    // console.warn('handleComposerSelection');
+    // console.warn(selectedComposer);
     getAllCompositionsByComposer(selectedComposer.value).then((compositionArray) => {
       const compositionOptionsArr = [];
       for (let i = 0; i < compositionArray.length; i += 1) {
@@ -57,15 +59,38 @@ const SequenceSelector = () => {
         };
         compositionOptionsArr.push(option);
       }
-      setCompositionSelectOptions(compositionOptionsArr);
-      console.warn(compositionRef.current);
       compositionRef.current.clearValue();
+      setCompositionSelectOptions(compositionOptionsArr);
+      // console.warn(compositionRef.current);
     })
       .catch(setCompositionSelectOptions([]));
   };
 
   const handleCompositionSelection = (selectedComposition) => {
-    console.warn(selectedComposition);
+    if(selectedComposition){
+    // console.warn('handleCompositionSelection');
+    // console.warn(selectedComposition);
+    getExcerptsByCompositionID(selectedComposition.value).then((excerptArray) => {
+      const excerptOptionsArr = [];
+      console.warn('excerptArray: ');
+      console.warn(excerptArray);
+      for (let i = 0; i < excerptArray.length; i += 1) {
+        const option = {
+          value: excerptArray[i].id,
+          label: excerptArray[i].movement 
+            ? `${excerptArray[i].movement}: ${excerptArray[i].measures} `
+            : `${excerptArray[i].measures}`,
+          disabled: false
+        };
+        excerptOptionsArr.push(option);
+      }
+      excerptRef.current.clearValue();
+      setExcerptSelectOptions(excerptOptionsArr);
+    })}
+  };
+
+  const handleExcerptSelection = (e) => {
+    console.warn(e);
   }
 
   return (
@@ -84,6 +109,15 @@ const SequenceSelector = () => {
           isClearable={true}
           onChange={(e) => {
             handleCompositionSelection(e);
+          }}/>
+      </div>
+      <div className='select-excerpt'>
+        <h3>Select Excerpt</h3>
+        <Select styles={selectStyles} options={excerptSelectOptions}
+          ref={excerptRef}
+          isClearale={true}
+          onChange={(e) =>{
+            handleExcerptSelection(e);
           }}/>
       </div>
     </div>
