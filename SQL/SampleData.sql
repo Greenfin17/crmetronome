@@ -11,11 +11,11 @@ Insert into Compositions (Title, Composer, AddedBy, Shared)  values ('Rite of Sp
 	(SELECT ID FROM Users WHERE LastName = 'Linkletter'), 1);
 Insert into Excerpts (Measures, Composition, CreatedBy, Shared) values ('Letter C to D', (SELECT ID FROM Compositions WHERE TITLE = 'Rite of Spring'),
 	(SELECT ID FROM Users WHERE LastName = 'Linkletter'), 1);
-Insert into Patterns (Pattern, CreatedBy, Shared) values ('3,2', 
+Insert into Patterns (BeatPattern, CreatedBy, Shared) values ('3,2', 
 	(SELECT ID FROM Users WHERE LastName = 'Linkletter'), 1);
-Insert into Patterns (Pattern, CreatedBy, Shared) values ('2,3', 
+Insert into Patterns (BeatPattern, CreatedBy, Shared) values ('2,3', 
 	(SELECT ID FROM Users WHERE LastName = 'Linkletter'), 1);
-Insert into Patterns (Pattern, CreatedBy, Shared) values ('3,2,3', 
+Insert into Patterns (BeatPattern, CreatedBy, Shared) values ('3,2,3', 
 	(SELECT ID FROM Users WHERE LastName = 'Linkletter'), 1);
 
 Insert into Segments (Excerpt, Position, Pattern, Tempo, Repetitions) values 
