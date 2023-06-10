@@ -8,8 +8,8 @@ import {
 
 const NavBar = () => (
   <div>
-    <Navbar>
-      <Nav>
+    <Navbar fixed='top'>
+      <Nav className='main-navigation justify-content-center'>
         <NavItem>
           <Link to='/'>
             Home

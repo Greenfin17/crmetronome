@@ -398,7 +398,7 @@ const SoundContext = () => {
   }
   
   return (
-  <>
+  <div className='sound-page'>
   {metronomeMode ? 
   <h2>Metronome</h2> : <h2>Sequence</h2> }
   <div>Select Mode</div>
@@ -407,8 +407,9 @@ const SoundContext = () => {
     <button onClick={handleSequenceMode} className='sequence-mode-button' disabled={!metronomeMode}>Sequence</button>
   </div>
   <div className = 'sound-div'>
-    {!metronomeMode ?
-    <SequenceSelector setSequence={setSequence}/> : null }
+    <div className='sequence-div' style={{ visibility: metronomeMode ? 'hidden' : 'visible'}}>
+    <SequenceSelector  setSequence={setSequence}/>
+    </div>
     <div className='control-div'>
       { !metronomeMode ?
       <div>
@@ -440,7 +441,7 @@ const SoundContext = () => {
       <canvas ref={blinkerRef} className='blinker'></canvas>
     </div>
   </div>
-  </>
+  </div>
   );
 };
 
