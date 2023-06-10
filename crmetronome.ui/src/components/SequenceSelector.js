@@ -4,8 +4,10 @@ import PropTypes from 'prop-types';
 import getAllComposers from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
 import getExcerptsByCompositionID from '../helpers/data/excerptData';
+import GetSequence from '../helpers/data/sequenceData';
 
-const SequenceSelector = () => {
+
+const SequenceSelector = ({setSequence}) => {
   const [composerSelectOptions, setComposerSelectOptions] = useState(null);
   const [compositionSelectOptions, setCompositionSelectOptions] = useState(null);
   const [excerptSelectOptions, setExcerptSelectOptions] = useState(null);
@@ -72,8 +74,6 @@ const SequenceSelector = () => {
     // console.warn(selectedComposition);
     getExcerptsByCompositionID(selectedComposition.value).then((excerptArray) => {
       const excerptOptionsArr = [];
-      console.warn('excerptArray: ');
-      console.warn(excerptArray);
       for (let i = 0; i < excerptArray.length; i += 1) {
         const option = {
           value: excerptArray[i].id,
@@ -89,9 +89,27 @@ const SequenceSelector = () => {
     })}
   };
 
-  const handleExcerptSelection = (e) => {
-    console.warn(e);
-  }
+  const handleExcerptSelection = (selectedExcerpt) => {
+    if(selectedExcerpt){
+      GetSequence(selectedExcerpt.value).then((segmentArray) => {
+        const resultArray = [];
+        for (let i = 0; i < segmentArray.length; i+= 1){
+          let patternStringArray = segmentArray[i].beatPattern.split(',');
+          let patternIntArray = [];
+          patternStringArray.forEach((numberOfBeats) => {
+            patternIntArray.push(parseInt(numberOfBeats));
+          });
+          const resultObj = {
+            pattern: patternIntArray,
+            reps: segmentArray[i].repetitions,
+            tempo: segmentArray[i].tempo
+          }
+          resultArray.push(resultObj);
+        }
+        setSequence(resultArray);
+      });
+    }
+  };
 
   return (
     <div className='select-sequence'>
@@ -107,8 +125,8 @@ const SequenceSelector = () => {
           // use key to force re-render on composer change
           // key={compositionSelectOptions.length ?  composerSelectOptions[0].id : 'select_composition-id'}
           isClearable={true}
-          onChange={(e) => {
-            handleCompositionSelection(e);
+          onChange={(selectedComposition) => {
+            handleCompositionSelection(selectedComposition);
           }}/>
       </div>
       <div className='select-excerpt'>
@@ -125,7 +143,7 @@ const SequenceSelector = () => {
 }
 
 SequenceSelector.propTypes = {
-  sequence: PropTypes.array
+  setSequence: PropTypes.func
 };
 
 export default SequenceSelector;

@@ -35,7 +35,7 @@ namespace crmetronomeAPI.DataAccess
             return result;
         }
 
-        public IEnumerable<Excerpt> GetExcerptsByComposition(Guid compositionID)
+        public IEnumerable<Excerpt> GetExcerptsByCompositionID(Guid compositionID)
         {
             using var db = new SqlConnection(_connectionString);
             var sql = @"SELECT * FROM Excerpts

@@ -15,7 +15,7 @@ const SoundContext3 = () => {
   const [sequenceRunning, setSequenceRunning] = useState(false); // tells us if a sequence is running
   const [tempo, setTempo] = useState(60);
   const [startButtonIcon, setStartButtonIcon] = useState(faPlay);
-  const [sequence] = useState(
+  const [sequence, setSequence] = useState(
       [
         {
           pattern: [3,2],
@@ -214,6 +214,17 @@ const SoundContext3 = () => {
     }
   }, [metronomeWorker, audioContext, tempo]);
 
+  useEffect(() => {
+    let mounted = true;
+    if (mounted) {
+    metronomeWorker.postMessage('seqStop');
+    // runProgress('stop');
+    // cancelAnimationFrame(requestAnimProgressRef.current);
+    resetSequencer();
+    console.warn(sequence);
+    }
+  }, [sequence]);
+
   // launch audioContext
   useEffect(() => {
     nextNote.current = -1;
@@ -390,7 +401,7 @@ const SoundContext3 = () => {
   <>
   <div>Metronome</div>
   <div className = 'button-div'>
-    <SequenceSelector sequence={sequence} />
+    <SequenceSelector setSequence={setSequence}/>
     <button onClick={handleStartSequence} disabled={metronomeRunning}>
       <FontAwesomeIcon  icon={startButtonIcon}/></button>
     <button onClick={handleResetSequencer} disabled={metronomeRunning}><FontAwesomeIcon icon={faRefresh}/></button>

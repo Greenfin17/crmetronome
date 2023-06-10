@@ -42,7 +42,7 @@ namespace crmetronomeAPI.Controllers
         [HttpGet("composition/{compositionID}")]
         public IActionResult getExcerptsByCompositionID(Guid compositionID)
         {
-            var result = _excerptRepository.GetExcerptsByComposition(compositionID);
+            var result = _excerptRepository.GetExcerptsByCompositionID(compositionID);
             return Ok(result);
         }
 

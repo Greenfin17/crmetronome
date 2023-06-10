@@ -35,6 +35,19 @@ namespace crmetronomeAPI.DataAccess
             return result;
         }
 
+        // returns individual sets of beat patterns in an excerpt 
+        public IEnumerable<SegmentWithPattern> GetSegmentsByExcerptID(Guid excerptId)
+        {
+            using var db = new SqlConnection(_connectionString);
+            var sql = @"SELECT PT.BeatPattern, SG.Repetitions, SG.Tempo
+                        FROM Segments SG JOIN Patterns PT 
+                        ON PT.ID = SG.Pattern 
+                        WHERE SG.Excerpt = @excerptID
+                        ORDER BY SG.Position";
+            var result = db.Query<SegmentWithPattern>(sql, new { excerptID = excerptId });
+            return result;
+        }
+
         public bool SegmentExists(Guid id)
         {
             bool returnVal = false;
