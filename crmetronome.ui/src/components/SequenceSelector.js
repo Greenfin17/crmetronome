@@ -102,6 +102,7 @@ const SequenceSelector = ({setSequence}) => {
           const resultObj = {
             pattern: patternIntArray,
             reps: segmentArray[i].repetitions,
+            unit: segmentArray[i].unit,
             tempo: segmentArray[i].tempo
           }
           resultArray.push(resultObj);

@@ -9,6 +9,7 @@ namespace crmetronomeAPI.Models
     {
         public string BeatPattern { get; set; }
         public int Repetitions { get; set; }
+        public int Unit { get; set; }
         public decimal Tempo { get; set; }
 
     }

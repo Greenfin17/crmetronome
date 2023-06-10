@@ -39,7 +39,7 @@ namespace crmetronomeAPI.DataAccess
         public IEnumerable<SegmentWithPattern> GetSegmentsByExcerptID(Guid excerptId)
         {
             using var db = new SqlConnection(_connectionString);
-            var sql = @"SELECT PT.BeatPattern, SG.Repetitions, SG.Tempo
+            var sql = @"SELECT PT.BeatPattern, SG.Repetitions, SG.Unit, SG.Tempo
                         FROM Segments SG JOIN Patterns PT 
                         ON PT.ID = SG.Pattern 
                         WHERE SG.Excerpt = @excerptID

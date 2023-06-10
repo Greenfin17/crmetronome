@@ -172,7 +172,7 @@ const SoundContext = () => {
           }
           */
           if ( nextNote.current < audioContext.currentTime + lookahead){
-            runOscillator(nextNote.current, false, true);
+            runOscillator(nextNote.current, false);
             nextNote.current += 60 / tempo;
           }
         }
@@ -194,7 +194,8 @@ const SoundContext = () => {
             console.warn('k: ' + iterator.current.k);
             console.warn('l: ' + iterator.current.l);
             */
-            nextInSequence.current = nextInSequence.current + 60/sequence[iterator.current.i].tempo;
+            nextInSequence.current = nextInSequence.current + 60/sequence[iterator.current.i].tempo
+                                                            / sequence[iterator.current.i].unit;
             progressTotal.current += 60/sequence[iterator.current.i].tempo;
             iterator.current.k++; iterator.current.l++;
             // progressPercentage.current = getProgress(sequence, iterator, progressTotal.current);
