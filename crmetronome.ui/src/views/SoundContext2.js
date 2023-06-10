@@ -1,68 +1,85 @@
+import React from 'react';
+import BassDrum2 from '../Assets/WavSamples/Bass-Drum-2.wav'
 
-import React, { useEffect, useState, useMemo } from 'react';
-const metronomeWorker = new Worker('metronomeWorker.js');
-
-const Sound = () => {
-  // const [song, setSong] = useState({});
-  const [audioContext, setAudioContext] = useState(null);
-
-  useEffect(() => {
-    let mounted = true;
-    if (mounted) {
-      // const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const audioCtx = new AudioContext();
-      setAudioContext(audioCtx);
-      metronomeWorker.onmessage = (e) => {
-        console.warn('e.data is ' + e.data);
-        if (e.data === 'ticker') {
-          console.warn('ticker');
-        }
-        else console.warn('message: ' + e.data);
-      }
-      metronomeWorker.postMessage({'interval' : 25});
-    }
-    return () => {
-      mounted = false;
-    }
-  }, []);
-
-  const runOscillator = () => {
-      const oscillator = new OscillatorNode(audioContext);
-      // const gainNode = audioContext.createGain();
-      const length=2;
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // value in hertz
-      // oscillator.connect(gainNode);
-      oscillator.connect(audioContext.destination);
-      console.warn(oscillator);
-      const time = audioContext.currentTime;
-      oscillator.start(time);
-      console.warn('oscillator running at ' + time);
-      oscillator.stop(time + length);
-
+class SoundContext2 extends React.Component{
+  constructor(props){
+    super(props);
+    const audioCtxt = new AudioContext();
+    audioCtxt.suspend();
+    const tmpGainNode = audioCtxt.createGain();
+    tmpGainNode.connect(audioCtxt.destination);
+    tmpGainNode.gain.value = 0.1;
+    this.state = ({
+      audioElement: null,
+      audioContext: audioCtxt,
+      gainNode: tmpGainNode,
+      track: null});
+  }
+  componentDidMount(){
+    const audioElementComponent = document.querySelector('audio');
+    const trackObj = this.state.audioContext.createMediaElementSource(audioElementComponent);
+    this.setState({
+      audioElement: audioElementComponent,
+      track: trackObj});
+    // this.state.trackObj.connect(this.state.gainNode);
+    // console.warn(this.state.gainNode);
   }
 
-
-    const handleStart = () => {
-      console.warn(audioContext.state);
-      if (audioContext.state==='suspended') {
-        audioContext.resume().then(() => runOscillator());
-      }
-  };
-    const handleStop = () => {
-    audioContext.suspend();
-  };
+  componentWillUnmount(){
+    this.setState({audioElement: null});
+    this.setState({audioContext: null})
+    this.setState({gainNode: null});
+    this.setState({track: null});
+  }
   
-  return (
-  <>
-  <div>Sounds Context2</div>
-  <div>
-    <button onClick={handleStart}>Start</button>
-    <button onClick={handleStop}>Stop</button>
-    <div></div>
-  </div>
-  </>
-  );
-};
+  runOscillator() {
+    if(this.state.audioContext && this.state.gainNode) {
+      const oscillator = new OscillatorNode(this.state.audioContext);
+      // console.warn('running oscillator');
+      // console.warn(this.state.gainNode);
+      const length=5;
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(440, this.state.audioContext.currentTime); // value in hertz
+      oscillator.connect(this.state.gainNode);
+      const time = this.state.audioContext.currentTime;
+      // console.warn(time);
+      oscillator.start(time + 1);
+      oscillator.stop(time + 1 +  length);
+    }
+  }
 
-export default Sound;
+  
+  render(){
+    const handleVolume = (e) => {
+      const tmpGain = this.state.gainNode;
+      // change volume directly and get around using setState
+      tmpGain.gain.value = e.target.value / 100;
+
+    };
+    
+    const handleStartStop = () => {
+      if (this.state.audioContext.state === 'suspended') {
+        this.state.audioContext.resume().then(() => this.runOscillator());
+      } else if (this.state.audioContext.state === 'running') {
+        this.state.audioContext.suspend();
+        // console.warn('suspended');
+      }
+    };
+    return (
+    <>
+    <div>Sound Context2</div>
+    <div>
+      <audio controls>
+        <source src={BassDrum2} />
+      </audio>
+      <button onClick={handleStartStop}>Start / Stop</button>
+      <input id="vol-control" type="range" min="0" max="100" step="1" onChange={handleVolume}
+       defaultValue='30' />
+      <div></div>
+    </div>
+    </>
+    );
+  }
+}
+
+export default SoundContext2;
