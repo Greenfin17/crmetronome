@@ -218,10 +218,10 @@ const SoundContext3 = () => {
     let mounted = true;
     if (mounted) {
     metronomeWorker.postMessage('seqStop');
-    // runProgress('stop');
-    // cancelAnimationFrame(requestAnimProgressRef.current);
+    setAudioContext(null);
+    setGainNode(null)
+    setupContext();
     resetSequencer();
-    console.warn(sequence);
     }
   }, [sequence]);
 
