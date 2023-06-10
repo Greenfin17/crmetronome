@@ -11,7 +11,8 @@ namespace crmetronomeAPI.Models
 		public Guid Excerpt { get; set; }
 		public int Position { get; set; }
 		public Guid Pattern { get; set; }
-		public decimal Tempo { get; set; }
+		public int Unit { get; set; }
+		public int Tempo { get; set; }
 		public int Repetitions { get; set; }
 
     }
