@@ -17,6 +17,9 @@ const NavBar = () => (
           <Link to='/soundContext' className='menu-item'>
             Metronome
           </Link>
+          <Link to= '/composers' className='menu-item'>
+            Composers
+          </Link>
         </NavItem>
       </Nav>
     </Navbar>

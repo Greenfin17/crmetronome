@@ -399,7 +399,7 @@ const SoundContext = () => {
   }
   
   return (
-  <div className='sound-page'>
+  <div className='content-page'>
   {metronomeMode ? 
   <h2>Metronome</h2> : <h2>Sequence</h2> }
   <div>Select Mode</div>
