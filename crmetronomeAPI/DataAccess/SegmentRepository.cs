@@ -62,17 +62,17 @@ namespace crmetronomeAPI.DataAccess
             return returnVal;
         }
 
-        internal Guid AddSegment(Segment patternObj)
+        internal Guid AddSegment(Segment segmentObj)
         {
             using var db = new SqlConnection(_connectionString);
             Guid id = new();
             var sql = @"INSERT INTO Segments (Excerpt, Position, Pattern, Unit, Tempo, Repetitions)
                         OUTPUT Inserted.ID
                         VALUES (@Excerpt, @Position, @Pattern, @Unit, @Tempo, @Repetitions)";
-            id = db.ExecuteScalar<Guid>(sql, patternObj);
+            id = db.ExecuteScalar<Guid>(sql, segmentObj);
             if (!id.Equals(Guid.Empty))
             {
-                patternObj.ID = id;
+                segmentObj.ID = id;
             }
             return id;
         }
@@ -85,6 +85,7 @@ namespace crmetronomeAPI.DataAccess
                             Excerpt = @Excerpt,
                             Position = @Position,
                             Pattern = @Pattern,
+                            Unit = @Unit,
                             Tempo = @Tempo,
                             Repetitions = @Repetitions
                         OUTPUT Inserted.*
@@ -96,6 +97,7 @@ namespace crmetronomeAPI.DataAccess
                 Excerpt = segmentObj.Excerpt,
                 Position = segmentObj.Position,
                 Pattern = segmentObj.Pattern,
+                Unit = segmentObj.Unit,
                 Tempo = segmentObj.Tempo,
                 Repetitions = segmentObj.Repetitions
             };
