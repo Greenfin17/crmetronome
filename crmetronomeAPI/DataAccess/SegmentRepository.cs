@@ -66,9 +66,9 @@ namespace crmetronomeAPI.DataAccess
         {
             using var db = new SqlConnection(_connectionString);
             Guid id = new();
-            var sql = @"INSERT INTO Segments (Excerpt, Position, Pattern, Tempo, Repetitions)
+            var sql = @"INSERT INTO Segments (Excerpt, Position, Pattern, Unit, Tempo, Repetitions)
                         OUTPUT Inserted.ID
-                        VALUES (@Excerpt, @Position, @Pattern, @Tempo, @Repetitions)";
+                        VALUES (@Excerpt, @Position, @Pattern, @Unit, @Tempo, @Repetitions)";
             id = db.ExecuteScalar<Guid>(sql, patternObj);
             if (!id.Equals(Guid.Empty))
             {
