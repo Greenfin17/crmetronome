@@ -8,7 +8,7 @@ const Composers = () => {
   const [composerProfile, setComposerProfile] = useState({
     id: emptyGuid,
     addedBy: '794B2C17-7A03-41E5-A954-21EAC1F31CF9',
-    shared: 0,
+    shared: false,
     first: '',
     middle: '',
     last: '',
@@ -44,6 +44,11 @@ const Composers = () => {
   }
   
   const handleChange = (e) => {
+    debugger;
+    console.warn(e);
+      if (e.target.name === 'shared'){
+        [e.target.checked]: e.target.checked;
+      }
     setComposerProfile((prevState) => ({
       ...prevState,
       [e.target.name]: e.target.value ? e.target.value : ''
@@ -74,19 +79,22 @@ const Composers = () => {
     <div className='form-outer-div'>
       <label className='input-label' htmlFor='firstName'>First Name</label>
         <input className='form-input' type='text' name='first' value={composerProfile.first}
-              label='firstName' onChange={handleChange} />
+              label='first' onChange={handleChange} />
       <label className='input-label' htmlFor='middleName'>Middle Name</label>
         <input className='form-input' type='text' name='middle' value={composerProfile.middle}
-              label='emailAddress' onChange={handleChange} />
+              label='middle' onChange={handleChange} />
       <label className='input-label' htmlFor='lastName'>Last Name</label>
         <input className='form-input' type='text' name='last' value={composerProfile.last}
-              label='lastName' onChange={handleChange} />
+              label='last' onChange={handleChange} />
       <label className='input-label' htmlFor='profilePicUrl'>Birth</label>
         <input className='form-input' type='text' name='birth' value={composerProfile.birth}
-              label='profilePicUrl' onChange={handleChange} />
+              label='Birth' onChange={handleChange} />
       <label className='input-label' htmlFor='profilePicUrl'>Death</label>
         <input className='form-input' type='text' name='death' value={composerProfile.death}
-              label='profilePicUrl' onChange={handleChange} />
+              label='death' onChange={handleChange} />
+      <label className='input-label' htmlFor='shared_checkbox'>Shared</label>
+        <input className='checkbox-input' type='checkbox' name='shared' value={composerProfile.shared}
+              label='shared' onChange={handleChange} />
       <div className='button-div'>
         <button className='submit-button' onClick={handleSubmit}>Submit</button>
       </div>
