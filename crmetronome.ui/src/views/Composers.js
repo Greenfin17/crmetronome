@@ -24,6 +24,12 @@ const Composers = () => {
         const option = {
           value: composerArray[i].id,
           label: `${composerArray[i].last}, ${composerArray[i].first}`,
+          shared: composerArray[i].shared,
+          first: composerArray[i].first,
+          last: composerArray[i].last,
+          middle: composerArray[i].middle,
+          birth: composerArray[i].birth,
+          death: composerArray[i].death,
           disabled: false
         };
         composerOptionsArr.push(option);
@@ -39,19 +45,30 @@ const Composers = () => {
     };
   }, []);
 
-  const handleComposerSelection = () => {
-
+  const handleComposerSelection = (composerSelection) => {
+    console.warn(composerSelection);
+    console.warn(composerSelection.birth.substring(0,10));
+    setComposerProfile(() => ({
+      id: composerSelection.value,
+      addedBy: composerSelection.addedBy ? composerSelection.addedBy: '',
+      shared: composerSelection.shared,
+      first: composerSelection.first ? composerSelection.first : '',
+      middle: composerSelection.middle ? composerSelection.middle : '',
+      last: composerSelection.last ? composerSelection.last : '',
+      birth: composerSelection.birth ? composerSelection.birth.substring(0,10) : '',
+      death: composerSelection.death ? composerSelection.death.substring(0,10) : ''
+    }));
   }
   
   const handleChange = (e) => {
-    debugger;
-    console.warn(e);
-      if (e.target.name === 'shared'){
-        [e.target.checked]: e.target.checked;
-      }
+    let value;
+    if (e.target.name === 'shared'){
+       value = e.target.checked;
+    } else value = e.target.value ? e.target.value : '';
+    
     setComposerProfile((prevState) => ({
       ...prevState,
-      [e.target.name]: e.target.value ? e.target.value : ''
+      [e.target.name]: value
     }));
   };
 
@@ -94,6 +111,7 @@ const Composers = () => {
               label='death' onChange={handleChange} />
       <label className='input-label' htmlFor='shared_checkbox'>Shared</label>
         <input className='checkbox-input' type='checkbox' name='shared' value={composerProfile.shared}
+              checked={composerProfile.shared}
               label='shared' onChange={handleChange} />
       <div className='button-div'>
         <button className='submit-button' onClick={handleSubmit}>Submit</button>
