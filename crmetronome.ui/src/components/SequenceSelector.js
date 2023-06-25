@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
-import getAllComposers from '../helpers/data/composerData';
+import {getAllComposers} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
 import getExcerptsByCompositionID from '../helpers/data/excerptData';
 import GetSequence from '../helpers/data/sequenceData';

@@ -11,4 +11,13 @@ const getAllComposers = () => new Promise((resolve, reject ) => {
       reject(error)});
 });
 
-export default getAllComposers;
+const addComposer = (composerProfile) => new Promise((resolve, reject) => {
+  axios.post(`${apiURL}/api/composers`, composerProfile)
+    .then((response) => {
+      resolve(response.data)})
+    .catch((error) => {
+      reject(error)});
+});
+export {
+  getAllComposers,
+  addComposer };
