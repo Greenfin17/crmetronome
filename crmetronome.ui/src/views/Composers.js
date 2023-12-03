@@ -150,8 +150,13 @@ const Composers = () => {
     control: (baseStyles) => ({
       ...baseStyles,
       background: '#aaaaaa'
+    }),
+    option: (baseStyles) =>({
+      ...baseStyles,
+      "&:hover" : { backgroundColor: 'purple'},
+      backgroundColor: '#55aaaa'
     })
-  }
+  };
   return (
     <>
     <div className='content-page'>

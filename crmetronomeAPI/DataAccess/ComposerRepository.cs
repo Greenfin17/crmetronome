@@ -102,6 +102,7 @@ namespace crmetronomeAPI.DataAccess
             var result = db.QuerySingleOrDefault<Composer>(sql, parameters);
             return result;
         }
+        // internal Composer UpdateComposerWithPatch(Guid composerID, Composer composerObj)
 
         internal bool DeleteComposer(Guid composerId)
         {

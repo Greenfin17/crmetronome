@@ -6,7 +6,6 @@ import getAllCompositionsByComposer from '../helpers/data/compositionData';
 import getExcerptsByCompositionID from '../helpers/data/excerptData';
 import GetSequence from '../helpers/data/sequenceData';
 
-
 const SequenceSelector = ({setSequence}) => {
   const [composerSelectOptions, setComposerSelectOptions] = useState(null);
   const [compositionSelectOptions, setCompositionSelectOptions] = useState(null);
@@ -14,17 +13,18 @@ const SequenceSelector = ({setSequence}) => {
   const compositionRef = useRef();
   const excerptRef = useRef();
   const selectStyles = {
-    control: (baseStyles) => ({
+   /* 
+    control: (baseStyles, state) => ({
       ...baseStyles,
-      background: '#aaaaaa'
-    }),
-
-    option: (baseStyles, state) => ({
-      ...baseStyles,
-      "&:hover" : { background: 'purple'},
       background: state.isSelected? 'red': 'blue',
-    })
-  };
+    }), 
+
+    option: (baseStyles) => ({
+      ...baseStyles,
+      "&:hover" : { backgroundColor: 'purple'},
+      backgroundColor: 'green'
+    }) */
+  }; 
   useEffect(() => {
     const composerOptionsArr = [];
     let mounted = true;
@@ -122,7 +122,7 @@ const SequenceSelector = ({setSequence}) => {
       <div className='select-composition'>
         <h3>Select Composition</h3>
         <Select styles={selectStyles} options={compositionSelectOptions}
-          ref={compositionRef}
+          ref={compositionRef} menuIsOpen={true}
           // use key to force re-render on composer change
           // key={compositionSelectOptions.length ?  composerSelectOptions[0].id : 'select_composition-id'}
           isClearable={true}
