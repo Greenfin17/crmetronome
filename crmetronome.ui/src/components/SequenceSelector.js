@@ -122,7 +122,7 @@ const SequenceSelector = ({setSequence}) => {
       <div className='select-composition'>
         <h3>Select Composition</h3>
         <Select styles={selectStyles} options={compositionSelectOptions}
-          ref={compositionRef} menuIsOpen={true}
+          ref={compositionRef}
           // use key to force re-render on composer change
           // key={compositionSelectOptions.length ?  composerSelectOptions[0].id : 'select_composition-id'}
           isClearable={true}
