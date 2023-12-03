@@ -13,7 +13,7 @@ const SequenceSelector = ({setSequence}) => {
   const compositionRef = useRef();
   const excerptRef = useRef();
   const selectStyles = {
-   /* 
+    
     control: (baseStyles, state) => ({
       ...baseStyles,
       background: state.isSelected? 'red': 'blue',
@@ -23,8 +23,8 @@ const SequenceSelector = ({setSequence}) => {
       ...baseStyles,
       "&:hover" : { backgroundColor: 'purple'},
       backgroundColor: 'green'
-    }) */
-  }; 
+    })
+  };
   useEffect(() => {
     const composerOptionsArr = [];
     let mounted = true;
