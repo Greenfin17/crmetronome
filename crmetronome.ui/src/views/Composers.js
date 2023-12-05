@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import CreatableSelect from 'react-select/creatable';
 import {getAllComposers, addComposer} from '../helpers/data/composerData';
+import getAllCompositionsByComposer from '../helpers/data/compositionData';
 
 const Composers = () => {
   const emptyGuid = '00000000-0000-0000-0000-000000000000';
@@ -16,6 +17,7 @@ const Composers = () => {
     death: ''
   };
   const [composerProfile, setComposerProfile] = useState(emptyProfile);
+  const [composerHasComposition, setComposerHasComposition] = useState(true);
 
   useEffect(() => {
     const composerOptionsArr = [];
@@ -61,6 +63,14 @@ const Composers = () => {
       birth: composerSelection.birth ? composerSelection.birth.substring(0,10).split('/').reverse().join('-') : '',
       death: composerSelection.death ? composerSelection.death.substring(0,10).split('/').reverse().join('-') : ''
     }));
+    getAllCompositionsByComposer(composerSelection.value).then((resultArr) => {
+      if(resultArr.length) {
+        setComposerHasComposition(true);
+      } else {
+         setComposerHasComposition(false);
+      }  
+    });
+    
   }
 
   const handleNewComposer = (inputValue) => {
@@ -76,6 +86,8 @@ const Composers = () => {
       birth: '',
       death:'' 
     });
+
+    setComposerHasComposition(false);
   };
 
   const handleChange = (e) => {
@@ -146,6 +158,14 @@ const Composers = () => {
 
   }
 
+  const handleDelete = () => {
+    if ( composerProfile.id != emptyGuid ) {
+      console.warn('Deleting composer with id ' + composerProfile.id);
+    } else {
+      console.warn('Nothing to delete');
+    }
+  };
+
   const selectStyles = {
     control: (baseStyles) => ({
       ...baseStyles,
@@ -191,6 +211,8 @@ const Composers = () => {
               label='shared' onChange={handleChange} />
       <div className='button-div'>
         <button className='submit-button' onClick={handleSubmit}>Submit</button>
+        <button className='delete-button' onClick={() => handleDelete()}
+          disabled={composerProfile.id === emptyGuid || composerHasComposition}>Delete</button>
       </div>
     </div>
 
