@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import CreatableSelect from 'react-select/creatable';
-import {getAllComposers, addComposer} from '../helpers/data/composerData';
+import {getAllComposers, addComposer, deleteComposer} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
 
 const Composers = () => {
@@ -18,6 +18,7 @@ const Composers = () => {
   };
   const [composerProfile, setComposerProfile] = useState(emptyProfile);
   const [composerHasComposition, setComposerHasComposition] = useState(true);
+  const [reload, setReload] = useState(false);
 
   useEffect(() => {
     const composerOptionsArr = [];
@@ -47,31 +48,44 @@ const Composers = () => {
       return function cleanup() {
       mounted = false;
     };
-  }, []);
+  }, [reload]);
 
   const handleComposerSelection = (composerSelection) => {
-    // console.warn(composerSelection);
-    // console.warn(composerSelection.birth.substring(0,10));
-    setComposerProfile(() => ({
-      id: composerSelection.value,
-      index: composerSelection.index,
-      addedBy: composerSelection.addedBy ? composerSelection.addedBy: '',
-      shared: composerSelection.shared,
-      first: composerSelection.first ? composerSelection.first : '',
-      middle: composerSelection.middle ? composerSelection.middle : '',
-      last: composerSelection.last ? composerSelection.last : '',
-      birth: composerSelection.birth ? composerSelection.birth.substring(0,10).split('/').reverse().join('-') : '',
-      death: composerSelection.death ? composerSelection.death.substring(0,10).split('/').reverse().join('-') : ''
-    }));
-    getAllCompositionsByComposer(composerSelection.value).then((resultArr) => {
-      if(resultArr.length) {
-        setComposerHasComposition(true);
-      } else {
-         setComposerHasComposition(false);
-      }  
-    });
-    
-  }
+    if (composerSelection) {
+      let jsBirthDate = "0000-00-00";
+      let jsDeathDate = "0000-00-00";
+      if(composerSelection.birth !== null) {
+        let birthDateParts = composerSelection.birth.split('/');
+        jsBirthDate = (birthDateParts[2].substr(0,4) + '-' + birthDateParts[0] + '-' +  birthDateParts[1] );
+        console.warn(jsBirthDate);
+      }
+      if(composerSelection.death) {
+        let deathDateParts = composerSelection.death.split('/');
+        jsDeathDate = (deathDateParts[2].substr(0,4) + '-' + deathDateParts[0] + '-' +  deathDateParts[1] );
+        console.warn(jsDeathDate);
+      }
+
+      setComposerProfile(() => ({
+        id: composerSelection.value,
+        index: composerSelection.index,
+        addedBy: composerSelection.addedBy ? composerSelection.addedBy: '',
+        shared: composerSelection.shared,
+        first: composerSelection.first ? composerSelection.first : '',
+        middle: composerSelection.middle ? composerSelection.middle : '',
+        last: composerSelection.last ? composerSelection.last : '',
+        birth: composerSelection.birth ? jsBirthDate : '',
+        death: composerSelection.death ? jsDeathDate : ''
+      }));
+      getAllCompositionsByComposer(composerSelection.value).then((resultArr) => {
+        if(resultArr.length) {
+          setComposerHasComposition(true);
+        } else {
+          setComposerHasComposition(false);
+        }  
+      });
+    }
+    else setComposerProfile(emptyProfile);
+  };
 
   const handleNewComposer = (inputValue) => {
     console.warn(inputValue);
@@ -123,6 +137,7 @@ const Composers = () => {
         composerOptionsArr.push(option);
       }
         setComposerSelectOptions(composerOptionsArr);
+        setReload(!reload); //Trigger composer array reload
 
       }));
       }
@@ -161,6 +176,13 @@ const Composers = () => {
   const handleDelete = () => {
     if ( composerProfile.id != emptyGuid ) {
       console.warn('Deleting composer with id ' + composerProfile.id);
+      deleteComposer(composerProfile.id).then((response) => {
+        console.warn(response);
+        if(response.status == 200)
+          console.warn("Composer deleted");
+          setReload(!reload); //Trigger composer array reload
+          setComposerProfile(emptyProfile);
+      });
     } else {
       console.warn('Nothing to delete');
     }
@@ -182,7 +204,7 @@ const Composers = () => {
     <div className='content-page'>
       <h2>Composers Page</h2>
       <h3>Search Existing Composer</h3>
-        <CreatableSelect IsClearable styles={selectStyles} options={composerSelectOptions}
+        <CreatableSelect isClearable={true} styles={selectStyles} options={composerSelectOptions}
           onChange={handleComposerSelection}
           onCreateOption={handleNewComposer}/>
     </div>
