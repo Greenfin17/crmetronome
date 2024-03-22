@@ -19,6 +19,12 @@ const addComposer = (composerProfile) => new Promise((resolve, reject) => {
       reject(error)});
 });
 
+const updateComposer = (composerProfile) => new Promise((resolve, reject) => {
+  axios.put(`${apiURL}/api/composers/${composerProfile.id}`, composerProfile)
+    .then((response) => {resolve(response)})
+    .catch((error) => {reject(error)});
+})
+
 const deleteComposer = (composerID) => new Promise((resolve, reject) => {
   axios.delete(`${apiURL}/api/composers/${composerID}`)
     .then((response) => resolve(response))
@@ -28,4 +34,5 @@ const deleteComposer = (composerID) => new Promise((resolve, reject) => {
 export {
   getAllComposers,
   addComposer,
+  updateComposer,
   deleteComposer};

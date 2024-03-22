@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import CreatableSelect from 'react-select/creatable';
-import {getAllComposers, addComposer, deleteComposer} from '../helpers/data/composerData';
+import {getAllComposers, addComposer, updateComposer, deleteComposer} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
+
 
 const Composers = () => {
   const emptyGuid = '00000000-0000-0000-0000-000000000000';
@@ -24,12 +25,14 @@ const Composers = () => {
     const composerOptionsArr = [];
     let mounted = true;
     getAllComposers().then((composerArray) => {
+      console.warn("reloading");
       for (let i = 0; i < composerArray.length; i += 1) {
         const option = {
           value: composerArray[i].id,
           index: i,
           label: `${composerArray[i].last}, ${composerArray[i].first}`,
           shared: composerArray[i].shared,
+          addedBy: composerArray[i].addedBy,
           first: composerArray[i].first ? composerArray[i].first: '',
           last: composerArray[i].last ? composerArray[i].last: '',
           middle: composerArray[i].middle ? composerArray[i].middle: '',
@@ -125,6 +128,7 @@ const Composers = () => {
         const option = {
           value: composerArray[i].id,
           index: i,
+          addedBy: composerArray[i].addedBy,
           label: `${composerArray[i].last}, ${composerArray[i].first}`,
           shared: composerArray[i].shared,
           first: composerArray[i].first,
@@ -143,34 +147,41 @@ const Composers = () => {
       }
     else {
       // Editing existing composer
+      const composerOptionsArr = [];
       console.warn("normal submit");
-      let composerObj = {};
-        if (composerProfile.shared !== composerSelectOptions[composerProfile.index].shared) {
+      let composerObj = {}; // Update fields that have changed.
           composerObj.shared = composerProfile.shared;
-        }
-        if (composerProfile.first !== composerSelectOptions[composerProfile.index].first) {
           composerObj.first = composerProfile.first;
-        }
-        if (composerProfile.middle !== composerSelectOptions[composerProfile.index].middle) {
           composerObj.middle = composerProfile.middle;
-        }
-        if (composerProfile.last !== composerSelectOptions[composerProfile.index].last) {
           composerObj.last = composerProfile.last;
-        }
-        if (composerProfile.birth !== composerSelectOptions[composerProfile.index].birth
-                                      .substring(0,10).split('/').reverse().join('-')) {
           composerObj.birth = composerProfile.birth;
-        }
-        if (composerProfile.death !== composerSelectOptions[composerProfile.index].death
-                                      .substring(0,10).split('/').reverse().join('-')) {
           composerObj.death = composerProfile.death;
-        }
         if (Object.keys(composerObj).length) {
           composerObj.id = composerSelectOptions[composerProfile.index].value;
+          composerObj.addedBy = composerSelectOptions[composerProfile.index].addedBy;
           console.warn(composerObj);
-        }
+          updateComposer(composerObj).then(() => getAllComposers().then((composerArray) => {
+            for (let i = 0; i < composerArray.length; i += 1) {
+              const option = {
+                value: composerArray[i].id,
+                index: i,
+                addedBy: composerArray[i].addedBy,
+                label: `${composerArray[i].last}, ${composerArray[i].first}`,
+                shared: composerArray[i].shared,
+                first: composerArray[i].first,
+                last: composerArray[i].last,
+                middle: composerArray[i].middle,
+                birth: composerArray[i].birth,
+                death: composerArray[i].death,
+                disabled: false
+              };
+              composerOptionsArr.push(option);
+            }
+          setComposerSelectOptions(composerOptionsArr);
+          setReload(!reload); //Trigger composer array reload
+        }));
+      }
     }
-
   }
 
   const handleDelete = () => {

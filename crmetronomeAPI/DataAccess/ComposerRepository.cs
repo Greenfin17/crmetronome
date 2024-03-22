@@ -90,7 +90,7 @@ namespace crmetronomeAPI.DataAccess
                         WHERE ID = @ID";
             var parameters = new
             {
-                ID = composerObj.ID,
+                ID = composerID,
                 AddedBy = composerObj.AddedBy,
                 Shared = composerObj.Shared,
                 First = composerObj.First,
