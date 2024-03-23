@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import CreatableSelect from 'react-select/creatable';
-import {getAllComposers, addComposer, updateComposer, deleteComposer} from '../helpers/data/composerData';
+import {getAllComposers, addComposer, updateComposerWithPatch, deleteComposer} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
 
 
@@ -147,40 +147,59 @@ const Composers = () => {
       }
     else {
       // Editing existing composer
-      const composerOptionsArr = [];
       console.warn("normal submit");
-      let composerObj = {}; // Update fields that have changed.
-          composerObj.shared = composerProfile.shared;
-          composerObj.first = composerProfile.first;
-          composerObj.middle = composerProfile.middle;
-          composerObj.last = composerProfile.last;
-          composerObj.birth = composerProfile.birth;
-          composerObj.death = composerProfile.death;
-        if (Object.keys(composerObj).length) {
-          composerObj.id = composerSelectOptions[composerProfile.index].value;
-          composerObj.addedBy = composerSelectOptions[composerProfile.index].addedBy;
-          console.warn(composerObj);
-          updateComposer(composerObj).then(() => getAllComposers().then((composerArray) => {
-            for (let i = 0; i < composerArray.length; i += 1) {
-              const option = {
-                value: composerArray[i].id,
-                index: i,
-                addedBy: composerArray[i].addedBy,
-                label: `${composerArray[i].last}, ${composerArray[i].first}`,
-                shared: composerArray[i].shared,
-                first: composerArray[i].first,
-                last: composerArray[i].last,
-                middle: composerArray[i].middle,
-                birth: composerArray[i].birth,
-                death: composerArray[i].death,
-                disabled: false
-              };
-              composerOptionsArr.push(option);
-            }
-          setComposerSelectOptions(composerOptionsArr);
-          setReload(!reload); //Trigger composer array reload
-        }));
+      let composerObj = {}; 
+      // Update fields that have changed.
+      // Have to copy shared value as it is a boolean
+      composerObj.shared = composerProfile.shared;
+      if (composerProfile.first !== composerSelectOptions[composerProfile.index].first) {
+        composerObj.first = composerProfile.first;
       }
+      if (composerProfile.middle !== composerSelectOptions[composerProfile.index].middle) {
+        composerObj.middle = composerProfile.middle;
+      }
+      if (composerProfile.last !== composerSelectOptions[composerProfile.index].last) {
+        composerObj.last = composerProfile.last;
+      }
+      // check if birth date has changed
+      let birthDateParts = composerSelectOptions[composerProfile.index].birth
+                                    .substring(0,10).split('/');
+      let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
+
+      if (composerProfile.birth !== dbEngineBirthDate) {
+        composerObj.birth = composerProfile.birth;
+      }
+      let deathDateParts = composerSelectOptions[composerProfile.index].death
+                                    .substring(0,10).split('/');
+      let dbEngineDeathDate = deathDateParts[2] + '-' + deathDateParts[0] + '-' + deathDateParts[1];
+      if (composerProfile.death !== dbEngineDeathDate) {
+        composerObj.death = composerProfile.death;
+      }
+      if (Object.keys(composerObj).length) {
+        composerObj.id = composerSelectOptions[composerProfile.index].value;
+        composerObj.addedBy = composerSelectOptions[composerProfile.index].addedBy;
+        console.warn(composerObj);
+        const composerOptionsArr = [];
+        updateComposerWithPatch(composerObj).then(() => getAllComposers().then((composerArray) => {
+          for (let i = 0; i < composerArray.length; i += 1) {
+            const option = {
+              value: composerArray[i].id,
+              index: i,
+              addedBy: composerArray[i].addedBy,
+              label: `${composerArray[i].last}, ${composerArray[i].first}`,
+              shared: composerArray[i].shared,
+              first: composerArray[i].first,
+              last: composerArray[i].last,
+              middle: composerArray[i].middle,
+              birth: composerArray[i].birth,
+              death: composerArray[i].death,
+              disabled: false
+            };
+            composerOptionsArr.push(option);
+          }
+        setComposerSelectOptions(composerOptionsArr);
+        setReload(!reload); //Trigger composer array reload
+      }))}
     }
   }
 
