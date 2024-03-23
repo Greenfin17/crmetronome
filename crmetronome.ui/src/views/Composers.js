@@ -252,11 +252,11 @@ const Composers = () => {
         <input className='form-input' type='text' name='last' value={composerProfile.last}
               label='last' id='composer-last-name' onChange={handleChange} />
       <label className='input-label' htmlFor='composer-birth'>Birth</label>
-        <input className='form-input' type='date' name='birth' value={composerProfile.birth}
-              label='Birth' id='composer-birth' onChange={handleChange} />
+        <input className='form-input' type='date' name='birth' min = '1000-01-01'
+              value={composerProfile.birth} label='Birth' id='composer-birth' onChange={handleChange} />
       <label className='input-label' htmlFor='composer-death'>Death</label>
-        <input className='form-input' type='date' name='death' value={composerProfile.death}
-              label='death' id='composer-death' onChange={handleChange} />
+        <input className='form-input' type='date' name='death' min='1000-01-01'
+              value={composerProfile.death} label='death' id='composer-death' onChange={handleChange} />
       <label className='input-label' htmlFor='composer-shared-checkbox'>Shared</label>
         <input className='checkbox-input' id='composer-shared-checkbox' type='checkbox' name='shared' value={composerProfile.shared}
               checked={composerProfile.shared}
