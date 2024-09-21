@@ -20,6 +20,7 @@ const Composers = () => {
   const [composerProfile, setComposerProfile] = useState(emptyProfile);
   const [composerHasComposition, setComposerHasComposition] = useState(true);
   const [reload, setReload] = useState(false);
+  const [submitButtonDisabled, setSubmitButtonDisabled] = useState(true);
 
   useEffect(() => {
     const composerOptionsArr = [];
@@ -42,6 +43,7 @@ const Composers = () => {
         };
         composerOptionsArr.push(option);
       }
+      debugger;
         if (mounted){
           setComposerSelectOptions(composerOptionsArr);
         }
@@ -52,6 +54,7 @@ const Composers = () => {
       mounted = false;
     };
   }, [reload]);
+
 
   const handleComposerSelection = (composerSelection) => {
     if (composerSelection) {
@@ -117,6 +120,7 @@ const Composers = () => {
       ...prevState,
       [e.target.name]: value
     }));
+    setSubmitButtonDisabled(false);
   };
 
   const handleSubmit = () => {
@@ -203,6 +207,7 @@ const Composers = () => {
           }
         setComposerSelectOptions(composerOptionsArr);
         setReload(!reload); //Trigger composer array reload
+        setSubmitButtonDisabled(true);
       }))}
     }
   }
@@ -266,7 +271,8 @@ const Composers = () => {
               checked={composerProfile.shared}
               label='shared' onChange={handleChange} />
       <div className='button-div'>
-        <button className='submit-button' onClick={handleSubmit}>Submit</button>
+        <button className='submit-button' onClick={handleSubmit}
+          disabled={submitButtonDisabled}>Submit</button>
         <button className='delete-button' onClick={() => handleDelete()}
           disabled={composerProfile.id === emptyGuid || composerHasComposition}>Delete</button>
       </div>
