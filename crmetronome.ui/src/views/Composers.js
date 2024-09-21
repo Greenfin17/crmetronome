@@ -3,7 +3,6 @@ import CreatableSelect from 'react-select/creatable';
 import {getAllComposers, addComposer, updateComposerWithPatch, deleteComposer} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
 
-
 const Composers = () => {
   const emptyGuid = '00000000-0000-0000-0000-000000000000';
   const [composerSelectOptions, setComposerSelectOptions] = useState();
@@ -20,13 +19,12 @@ const Composers = () => {
   const [composerProfile, setComposerProfile] = useState(emptyProfile);
   const [composerHasComposition, setComposerHasComposition] = useState(true);
   const [reload, setReload] = useState(false);
-  const [submitButtonDisabled, setSubmitButtonDisabled] = useState(true);
+  const [submitDisabled, setSubmitDisabled] = useState(true);
 
   useEffect(() => {
     const composerOptionsArr = [];
     let mounted = true;
     getAllComposers().then((composerArray) => {
-      console.warn("reloading");
       for (let i = 0; i < composerArray.length; i += 1) {
         const option = {
           value: composerArray[i].id,
@@ -43,7 +41,6 @@ const Composers = () => {
         };
         composerOptionsArr.push(option);
       }
-      debugger;
         if (mounted){
           setComposerSelectOptions(composerOptionsArr);
         }
@@ -55,6 +52,29 @@ const Composers = () => {
     };
   }, [reload]);
 
+  const checkChangedForm = () => {
+    let birthDateParts = composerSelectOptions[composerProfile.index].birth
+                                  .substring(0,10).split('/');
+    let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
+    let deathDateParts = composerSelectOptions[composerProfile.index].death
+                                  .substring(0,10).split('/');
+    let dbEngineDeathDate = deathDateParts[2] + '-' + deathDateParts[0] + '-' + deathDateParts[1];
+    if (composerProfile.first != composerSelectOptions[composerProfile.index].first   ||
+        composerProfile.last != composerSelectOptions[composerProfile.index].last     ||
+        composerProfile.middle != composerSelectOptions[composerProfile.index].middle ||
+        composerProfile.birth != dbEngineBirthDate ||
+        composerProfile.death != dbEngineDeathDate ||
+        composerProfile.shared != composerSelectOptions[composerProfile.index].shared) {
+      setSubmitDisabled(false);
+    } else {
+      setSubmitDisabled(true);
+    }
+  }
+
+  useEffect(() => {
+    if(composerSelectOptions)
+    checkChangedForm();
+  }, [composerProfile]);
 
   const handleComposerSelection = (composerSelection) => {
     if (composerSelection) {
@@ -63,12 +83,10 @@ const Composers = () => {
       if(composerSelection.birth !== null) {
         let birthDateParts = composerSelection.birth.split('/');
         jsBirthDate = (birthDateParts[2].substr(0,4) + '-' + birthDateParts[0] + '-' +  birthDateParts[1] );
-        console.warn(jsBirthDate);
       }
       if(composerSelection.death) {
         let deathDateParts = composerSelection.death.split('/');
         jsDeathDate = (deathDateParts[2].substr(0,4) + '-' + deathDateParts[0] + '-' +  deathDateParts[1] );
-        console.warn(jsDeathDate);
       }
 
       setComposerProfile(() => ({
@@ -94,7 +112,6 @@ const Composers = () => {
   };
 
   const handleNewComposer = (inputValue) => {
-    console.warn(inputValue);
     setComposerProfile({
       id: emptyGuid,
       index: '',
@@ -110,7 +127,7 @@ const Composers = () => {
     setComposerHasComposition(false);
   };
 
-  const handleChange = (e) => {
+   const handleChange = (e) => {
     let value;
     if (e.target.name === 'shared'){
        value = e.target.checked;
@@ -120,9 +137,10 @@ const Composers = () => {
       ...prevState,
       [e.target.name]: value
     }));
-    setSubmitButtonDisabled(false);
-  };
+    checkChangedForm();
 
+  };
+  
   const handleSubmit = () => {
     // Adding new composer
     if (composerProfile.id === emptyGuid) {
@@ -151,15 +169,13 @@ const Composers = () => {
       }
     else {
       // Editing existing composer
-      console.warn("normal submit");
       debugger;
       let composerObj = {};
       //composerObj.shared=null;
-      console.warn(composerObj);
       // Update fields that have changed.
-      // Have to copy shared value as it is a boolean
-      if (composerProfile.shared !== composerSelectOptions[composerProfile.index].shared)
+      if (composerProfile.shared !== composerSelectOptions[composerProfile.index].shared){
         composerObj.shared = composerProfile.shared;
+      }
       if (composerProfile.first !== composerSelectOptions[composerProfile.index].first) {
         composerObj.first = composerProfile.first;
       }
@@ -186,7 +202,6 @@ const Composers = () => {
       if (Object.keys(composerObj).length) {
         composerObj.id = composerSelectOptions[composerProfile.index].value;
         composerObj.addedBy = composerSelectOptions[composerProfile.index].addedBy;
-        console.warn(composerObj);
         const composerOptionsArr = [];
         updateComposerWithPatch(composerObj).then(() => getAllComposers().then((composerArray) => {
           for (let i = 0; i < composerArray.length; i += 1) {
@@ -207,18 +222,15 @@ const Composers = () => {
           }
         setComposerSelectOptions(composerOptionsArr);
         setReload(!reload); //Trigger composer array reload
-        setSubmitButtonDisabled(true);
+        setSubmitDisabled(true);
       }))}
     }
   }
 
   const handleDelete = () => {
     if ( composerProfile.id != emptyGuid ) {
-      console.warn('Deleting composer with id ' + composerProfile.id);
       deleteComposer(composerProfile.id).then((response) => {
-        console.warn(response);
         if(response.status == 200)
-          console.warn("Composer deleted");
           setReload(!reload); //Trigger composer array reload
           setComposerProfile(emptyProfile);
       });
@@ -272,7 +284,7 @@ const Composers = () => {
               label='shared' onChange={handleChange} />
       <div className='button-div'>
         <button className='submit-button' onClick={handleSubmit}
-          disabled={submitButtonDisabled}>Submit</button>
+          disabled={submitDisabled}>Submit</button>
         <button className='delete-button' onClick={() => handleDelete()}
           disabled={composerProfile.id === emptyGuid || composerHasComposition}>Delete</button>
       </div>
