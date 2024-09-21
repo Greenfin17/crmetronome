@@ -107,26 +107,47 @@ namespace crmetronomeAPI.DataAccess
             using var db = new SqlConnection(_connectionString);
             var sql = @"UPDATE Composers Set ";
             // check for each changed property
-            sql += @"Shared = @Shared";
+            var isFirst = true;
+            void CheckNotFirst()
+            {
+                if (!isFirst)
+                {
+                    sql += ", ";
+                } else
+                {
+                    isFirst = false;
+                }
+
+            }
+            if(composerObj.Shared != null)
+            {
+                sql += "Shared = @Shared";
+                isFirst = false;
+            }
             if (composerObj.First != null)
             {
-                sql += ", First = @First";
+                CheckNotFirst();
+                sql += "First = @First";
             }
             if (composerObj.Middle!= null)
             {
-                sql += ", Middle = @Middle";
+                CheckNotFirst();
+                sql += "Middle = @Middle";
             }
             if (composerObj.Last != null)
             {
-                sql += ", Last = @Last";
+                CheckNotFirst();
+                sql += "Last = @Last";
             }
             if (composerObj.Birth != null)
             {
-                sql += ", Birth = @Birth";
+                CheckNotFirst();
+                sql += "Birth = @Birth";
             }
             if (composerObj.Death != null)
             {
-                sql += ", Death = @Death";
+                CheckNotFirst();
+                sql += "Death = @Death";
             }
             sql += " Output Inserted.* Where ID = @ID;";
             var result = db.QuerySingleOrDefault<Composer>(sql, composerObj);
