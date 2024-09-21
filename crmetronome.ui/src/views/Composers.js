@@ -148,10 +148,14 @@ const Composers = () => {
     else {
       // Editing existing composer
       console.warn("normal submit");
-      let composerObj = {}; 
+      debugger;
+      let composerObj = {};
+      //composerObj.shared=null;
+      console.warn(composerObj);
       // Update fields that have changed.
       // Have to copy shared value as it is a boolean
-      composerObj.shared = composerProfile.shared;
+      if (composerProfile.shared !== composerSelectOptions[composerProfile.index].shared)
+        composerObj.shared = composerProfile.shared;
       if (composerProfile.first !== composerSelectOptions[composerProfile.index].first) {
         composerObj.first = composerProfile.first;
       }
