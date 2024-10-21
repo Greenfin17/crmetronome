@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import CreatableSelect from 'react-select/creatable';
-import {getAllComposers, addComposer, updateComposer, deleteComposer} from '../helpers/data/composerData';
+import {getAllComposers, addComposer, updateComposerWithPatch, deleteComposer} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
-
 
 const Composers = () => {
   const emptyGuid = '00000000-0000-0000-0000-000000000000';
@@ -20,12 +19,12 @@ const Composers = () => {
   const [composerProfile, setComposerProfile] = useState(emptyProfile);
   const [composerHasComposition, setComposerHasComposition] = useState(true);
   const [reload, setReload] = useState(false);
+  const [submitDisabled, setSubmitDisabled] = useState(true);
 
   useEffect(() => {
     const composerOptionsArr = [];
     let mounted = true;
     getAllComposers().then((composerArray) => {
-      console.warn("reloading");
       for (let i = 0; i < composerArray.length; i += 1) {
         const option = {
           value: composerArray[i].id,
@@ -53,6 +52,30 @@ const Composers = () => {
     };
   }, [reload]);
 
+  const checkChangedForm = () => {
+    let birthDateParts = composerSelectOptions[composerProfile.index].birth
+                                  .substring(0,10).split('/');
+    let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
+    let deathDateParts = composerSelectOptions[composerProfile.index].death
+                                  .substring(0,10).split('/');
+    let dbEngineDeathDate = deathDateParts[2] + '-' + deathDateParts[0] + '-' + deathDateParts[1];
+    if (composerProfile.first != composerSelectOptions[composerProfile.index].first   ||
+        composerProfile.last != composerSelectOptions[composerProfile.index].last     ||
+        composerProfile.middle != composerSelectOptions[composerProfile.index].middle ||
+        composerProfile.birth != dbEngineBirthDate ||
+        composerProfile.death != dbEngineDeathDate ||
+        composerProfile.shared != composerSelectOptions[composerProfile.index].shared) {
+      setSubmitDisabled(false);
+    } else {
+      setSubmitDisabled(true);
+    }
+  }
+
+  useEffect(() => {
+    if(composerSelectOptions)
+    checkChangedForm();
+  }, [composerProfile]);
+
   const handleComposerSelection = (composerSelection) => {
     if (composerSelection) {
       let jsBirthDate = "0000-00-00";
@@ -60,12 +83,10 @@ const Composers = () => {
       if(composerSelection.birth !== null) {
         let birthDateParts = composerSelection.birth.split('/');
         jsBirthDate = (birthDateParts[2].substr(0,4) + '-' + birthDateParts[0] + '-' +  birthDateParts[1] );
-        console.warn(jsBirthDate);
       }
       if(composerSelection.death) {
         let deathDateParts = composerSelection.death.split('/');
         jsDeathDate = (deathDateParts[2].substr(0,4) + '-' + deathDateParts[0] + '-' +  deathDateParts[1] );
-        console.warn(jsDeathDate);
       }
 
       setComposerProfile(() => ({
@@ -91,7 +112,6 @@ const Composers = () => {
   };
 
   const handleNewComposer = (inputValue) => {
-    console.warn(inputValue);
     setComposerProfile({
       id: emptyGuid,
       index: '',
@@ -107,7 +127,7 @@ const Composers = () => {
     setComposerHasComposition(false);
   };
 
-  const handleChange = (e) => {
+   const handleChange = (e) => {
     let value;
     if (e.target.name === 'shared'){
        value = e.target.checked;
@@ -117,8 +137,10 @@ const Composers = () => {
       ...prevState,
       [e.target.name]: value
     }));
-  };
+    checkChangedForm();
 
+  };
+  
   const handleSubmit = () => {
     // Adding new composer
     if (composerProfile.id === emptyGuid) {
@@ -147,50 +169,68 @@ const Composers = () => {
       }
     else {
       // Editing existing composer
-      const composerOptionsArr = [];
-      console.warn("normal submit");
-      let composerObj = {}; // Update fields that have changed.
-          composerObj.shared = composerProfile.shared;
-          composerObj.first = composerProfile.first;
-          composerObj.middle = composerProfile.middle;
-          composerObj.last = composerProfile.last;
-          composerObj.birth = composerProfile.birth;
-          composerObj.death = composerProfile.death;
-        if (Object.keys(composerObj).length) {
-          composerObj.id = composerSelectOptions[composerProfile.index].value;
-          composerObj.addedBy = composerSelectOptions[composerProfile.index].addedBy;
-          console.warn(composerObj);
-          updateComposer(composerObj).then(() => getAllComposers().then((composerArray) => {
-            for (let i = 0; i < composerArray.length; i += 1) {
-              const option = {
-                value: composerArray[i].id,
-                index: i,
-                addedBy: composerArray[i].addedBy,
-                label: `${composerArray[i].last}, ${composerArray[i].first}`,
-                shared: composerArray[i].shared,
-                first: composerArray[i].first,
-                last: composerArray[i].last,
-                middle: composerArray[i].middle,
-                birth: composerArray[i].birth,
-                death: composerArray[i].death,
-                disabled: false
-              };
-              composerOptionsArr.push(option);
-            }
-          setComposerSelectOptions(composerOptionsArr);
-          setReload(!reload); //Trigger composer array reload
-        }));
+      debugger;
+      let composerObj = {};
+      //composerObj.shared=null;
+      // Update fields that have changed.
+      if (composerProfile.shared !== composerSelectOptions[composerProfile.index].shared){
+        composerObj.shared = composerProfile.shared;
       }
+      if (composerProfile.first !== composerSelectOptions[composerProfile.index].first) {
+        composerObj.first = composerProfile.first;
+      }
+      if (composerProfile.middle !== composerSelectOptions[composerProfile.index].middle) {
+        composerObj.middle = composerProfile.middle;
+      }
+      if (composerProfile.last !== composerSelectOptions[composerProfile.index].last) {
+        composerObj.last = composerProfile.last;
+      }
+      // check if birth date has changed
+      let birthDateParts = composerSelectOptions[composerProfile.index].birth
+                                    .substring(0,10).split('/');
+      let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
+
+      if (composerProfile.birth !== dbEngineBirthDate) {
+        composerObj.birth = composerProfile.birth;
+      }
+      let deathDateParts = composerSelectOptions[composerProfile.index].death
+                                    .substring(0,10).split('/');
+      let dbEngineDeathDate = deathDateParts[2] + '-' + deathDateParts[0] + '-' + deathDateParts[1];
+      if (composerProfile.death !== dbEngineDeathDate) {
+        composerObj.death = composerProfile.death;
+      }
+      if (Object.keys(composerObj).length) {
+        composerObj.id = composerSelectOptions[composerProfile.index].value;
+        composerObj.addedBy = composerSelectOptions[composerProfile.index].addedBy;
+        const composerOptionsArr = [];
+        updateComposerWithPatch(composerObj).then(() => getAllComposers().then((composerArray) => {
+          for (let i = 0; i < composerArray.length; i += 1) {
+            const option = {
+              value: composerArray[i].id,
+              index: i,
+              addedBy: composerArray[i].addedBy,
+              label: `${composerArray[i].last}, ${composerArray[i].first}`,
+              shared: composerArray[i].shared,
+              first: composerArray[i].first,
+              last: composerArray[i].last,
+              middle: composerArray[i].middle,
+              birth: composerArray[i].birth,
+              death: composerArray[i].death,
+              disabled: false
+            };
+            composerOptionsArr.push(option);
+          }
+        setComposerSelectOptions(composerOptionsArr);
+        setReload(!reload); //Trigger composer array reload
+        setSubmitDisabled(true);
+      }))}
     }
   }
 
   const handleDelete = () => {
     if ( composerProfile.id != emptyGuid ) {
-      console.warn('Deleting composer with id ' + composerProfile.id);
       deleteComposer(composerProfile.id).then((response) => {
-        console.warn(response);
         if(response.status == 200)
-          console.warn("Composer deleted");
           setReload(!reload); //Trigger composer array reload
           setComposerProfile(emptyProfile);
       });
@@ -233,17 +273,18 @@ const Composers = () => {
         <input className='form-input' type='text' name='last' value={composerProfile.last}
               label='last' id='composer-last-name' onChange={handleChange} />
       <label className='input-label' htmlFor='composer-birth'>Birth</label>
-        <input className='form-input' type='date' name='birth' value={composerProfile.birth}
-              label='Birth' id='composer-birth' onChange={handleChange} />
+        <input className='form-input' type='date' name='birth' min = '1000-01-01'
+              value={composerProfile.birth} label='Birth' id='composer-birth' onChange={handleChange} />
       <label className='input-label' htmlFor='composer-death'>Death</label>
-        <input className='form-input' type='date' name='death' value={composerProfile.death}
-              label='death' id='composer-death' onChange={handleChange} />
+        <input className='form-input' type='date' name='death' min='1000-01-01'
+              value={composerProfile.death} label='death' id='composer-death' onChange={handleChange} />
       <label className='input-label' htmlFor='composer-shared-checkbox'>Shared</label>
         <input className='checkbox-input' id='composer-shared-checkbox' type='checkbox' name='shared' value={composerProfile.shared}
               checked={composerProfile.shared}
               label='shared' onChange={handleChange} />
       <div className='button-div'>
-        <button className='submit-button' onClick={handleSubmit}>Submit</button>
+        <button className='submit-button' onClick={handleSubmit}
+          disabled={submitDisabled}>Submit</button>
         <button className='delete-button' onClick={() => handleDelete()}
           disabled={composerProfile.id === emptyGuid || composerHasComposition}>Delete</button>
       </div>

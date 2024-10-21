@@ -17,7 +17,7 @@ namespace crmetronomeAPI.Controllers
     public class ComposerController : ControllerBase
 
     {
-        private ComposerRepository _composerRepository;
+        private readonly ComposerRepository _composerRepository;
         public ComposerController(ComposerRepository composerRepo)
         {
             _composerRepository = composerRepo;
@@ -75,6 +75,18 @@ namespace crmetronomeAPI.Controllers
 
             else return BadRequest($"Composer with id ${composerId} not updated.");
         }
+
+        [HttpPatch()]
+        public IActionResult UpdateComposerWithPatch(Composer composerObj)
+        {
+            var result = _composerRepository.UpdateComposerWithPatch(composerObj);
+            if (result != null)
+            {
+                return Ok(result);
+            }
+            else return BadRequest($"Composer with id ${composerObj.ID} not updated.");
+        }
+
         [HttpDelete("{composerId}")]
         public IActionResult DeleteComposer(Guid composerId)
         {

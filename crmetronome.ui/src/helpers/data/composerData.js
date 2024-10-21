@@ -20,10 +20,17 @@ const addComposer = (composerProfile) => new Promise((resolve, reject) => {
 });
 
 const updateComposer = (composerProfile) => new Promise((resolve, reject) => {
-  axios.put(`${apiURL}/api/composers/${composerProfile.id}`, composerProfile)
+  axios.put(`${apiURL}/api/composers`, composerProfile)
+    .then((response) => {resolve(response)})
+    .catch((error) => {reject(error)});
+});
+
+const updateComposerWithPatch = (composerProfile) => new Promise((resolve, reject) => {
+  axios.patch(`${apiURL}/api/composers`, composerProfile)
     .then((response) => {resolve(response)})
     .catch((error) => {reject(error)});
 })
+
 
 const deleteComposer = (composerID) => new Promise((resolve, reject) => {
   axios.delete(`${apiURL}/api/composers/${composerID}`)
@@ -35,4 +42,5 @@ export {
   getAllComposers,
   addComposer,
   updateComposer,
+  updateComposerWithPatch,
   deleteComposer};

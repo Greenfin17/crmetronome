@@ -16,7 +16,7 @@ namespace crmetronomeAPI.Controllers
 
     public class PatternController : ControllerBase
     {
-        private PatternRepository _patternRepository;
+        private readonly PatternRepository _patternRepository;
         public PatternController(PatternRepository patternRepo)
         {
             _patternRepository = patternRepo;
