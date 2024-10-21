@@ -172,7 +172,7 @@ const SoundContext = () => {
           }
           */
           if ( nextNote.current < audioContext.currentTime + lookahead){
-            runOscillator(nextNote.current, false, true);
+            runOscillator(nextNote.current, false);
             nextNote.current += 60 / tempo;
           }
         }
@@ -194,7 +194,8 @@ const SoundContext = () => {
             console.warn('k: ' + iterator.current.k);
             console.warn('l: ' + iterator.current.l);
             */
-            nextInSequence.current = nextInSequence.current + 60/sequence[iterator.current.i].tempo;
+            nextInSequence.current = nextInSequence.current + 60/sequence[iterator.current.i].tempo
+                                                            / sequence[iterator.current.i].unit;
             progressTotal.current += 60/sequence[iterator.current.i].tempo;
             iterator.current.k++; iterator.current.l++;
             // progressPercentage.current = getProgress(sequence, iterator, progressTotal.current);
@@ -398,7 +399,7 @@ const SoundContext = () => {
   }
   
   return (
-  <>
+  <div className='sound-page'>
   {metronomeMode ? 
   <h2>Metronome</h2> : <h2>Sequence</h2> }
   <div>Select Mode</div>
@@ -407,8 +408,9 @@ const SoundContext = () => {
     <button onClick={handleSequenceMode} className='sequence-mode-button' disabled={!metronomeMode}>Sequence</button>
   </div>
   <div className = 'sound-div'>
-    {!metronomeMode ?
-    <SequenceSelector setSequence={setSequence}/> : null }
+    <div className='sequence-div' style={{ visibility: metronomeMode ? 'hidden' : 'visible'}}>
+    <SequenceSelector  setSequence={setSequence}/>
+    </div>
     <div className='control-div'>
       { !metronomeMode ?
       <div>
@@ -440,7 +442,7 @@ const SoundContext = () => {
       <canvas ref={blinkerRef} className='blinker'></canvas>
     </div>
   </div>
-  </>
+  </div>
   );
 };
 

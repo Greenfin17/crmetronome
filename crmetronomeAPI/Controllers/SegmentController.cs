@@ -30,14 +30,14 @@ namespace crmetronomeAPI.Controllers
         }
 
         [HttpGet("{segmentID}")]
-        public IActionResult GetSegmentByID(Guid patternID)
+        public IActionResult GetSegmentByID(Guid segmentID)
         {
-            var result = _segmentRepository.GetSegmentByID(patternID);
+            var result = _segmentRepository.GetSegmentByID(segmentID);
             if (result != null)
             {
                 return Ok(result);
             }
-            else return NotFound($"Pattern with ID ${patternID} not found.");
+            else return NotFound($"Pattern with ID ${segmentID} not found.");
         }
 
         [HttpGet("excerpt/{excerptID}")]

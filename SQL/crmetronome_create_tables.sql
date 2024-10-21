@@ -119,7 +119,8 @@ CREATE TABLE dbo.Segments
 	Excerpt uniqueidentifier NOT NULL,
 	Position int,
 	Pattern uniqueidentifier NOT NULL,
-	Tempo decimal,
+	Unit int,
+	Tempo int,
 	Repetitions int
 	Constraint FK_Segments_Excerpts FOREIGN KEY (Excerpt)
 		REFERENCES dbo.Excerpts (ID),
