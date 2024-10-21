@@ -12,8 +12,8 @@ namespace crmetronomeAPI.Models
 		public string First { get; set; }
 		public string Last { get; set; }
 		public string Middle { get; set; }
-		public DateTime Birth { get; set; }
-		public DateTime Death { get; set; }
+		public string Birth { get; set; }
+		public string Death { get; set; }
 	}
 
 }

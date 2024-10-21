@@ -1,11 +1,10 @@
 import React, {useEffect, useState, useRef} from 'react';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
-import getAllComposers from '../helpers/data/composerData';
+import {getAllComposers} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
 import getExcerptsByCompositionID from '../helpers/data/excerptData';
 import GetSequence from '../helpers/data/sequenceData';
-
 
 const SequenceSelector = ({setSequence}) => {
   const [composerSelectOptions, setComposerSelectOptions] = useState(null);
@@ -14,15 +13,16 @@ const SequenceSelector = ({setSequence}) => {
   const compositionRef = useRef();
   const excerptRef = useRef();
   const selectStyles = {
-    control: (baseStyles) => ({
+    
+    control: (baseStyles, state) => ({
       ...baseStyles,
-      background: '#aaaaaa'
-    }),
-
-    option: (baseStyles, state) => ({
-      ...baseStyles,
-      "&:hover" : { background: 'purple'},
       background: state.isSelected? 'red': 'blue',
+    }), 
+
+    option: (baseStyles) => ({
+      ...baseStyles,
+      "&:hover" : { backgroundColor: 'purple'},
+      backgroundColor: 'green'
     })
   };
   useEffect(() => {

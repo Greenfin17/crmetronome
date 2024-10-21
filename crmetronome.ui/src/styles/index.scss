@@ -1,9 +1,6 @@
 @import './components/navbar';
-@import './components/soundPage';
+@import './components/contentPage';
 @import './components/selector';
 @import './components/control';
 @import './components/progress';
-.menu-item {
-  margin: 5px;
-  color: white;
-}
+@import './components/forms';

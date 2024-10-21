@@ -90,7 +90,7 @@ namespace crmetronomeAPI.DataAccess
                         WHERE ID = @ID";
             var parameters = new
             {
-                ID = composerObj.ID,
+                ID = composerID,
                 AddedBy = composerObj.AddedBy,
                 Shared = composerObj.Shared,
                 First = composerObj.First,
@@ -102,6 +102,7 @@ namespace crmetronomeAPI.DataAccess
             var result = db.QuerySingleOrDefault<Composer>(sql, parameters);
             return result;
         }
+        // internal Composer UpdateComposerWithPatch(Guid composerID, Composer composerObj)
 
         internal bool DeleteComposer(Guid composerId)
         {

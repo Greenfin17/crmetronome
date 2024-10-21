@@ -26,6 +26,3 @@ Insert into Segments (Excerpt, Position, Pattern, Unit, Tempo, Repetitions) valu
 	(SELECT ID FROM Patterns WHERE BeatPattern = '3,2,3'), 3, 120, 2);
 
 
-Insert into Segments (Excerpt, Position, Pattern, Tempo, Repetitions) values 
-	('B28D70AA-C494-4E5B-9514-524BF5BCFD86', '2', 'B32995CE-E1BB-4D16-A56D-50B6B6940C6E',
-	 '120', '2');
