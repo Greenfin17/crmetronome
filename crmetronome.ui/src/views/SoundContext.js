@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 const metronomeWorker = new Worker('metronomeWorker.js');
-import ProgressBar from 'react-bootstrap/ProgressBar';
+// import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons';
 import getProgress from '../helpers/calculators';
 import SequenceSelector from '../components/SequenceSelector';
 
-const SoundContext3 = () => {
+const SoundContext = () => {
   // const [song, setSong] = useState({});
   const [audioContext, setAudioContext] = useState(null);
   const [gainNode, setGainNode] = useState(null);
@@ -14,6 +14,7 @@ const SoundContext3 = () => {
   const [metronomeRunning, setMetronomeRunning] = useState(false); // tells us if the metronome is running
   const [sequenceRunning, setSequenceRunning] = useState(false); // tells us if a sequence is running
   const [tempo, setTempo] = useState(60);
+  const [weakBeats, setWeakBeats] = useState(false);
   const [startButtonIcon, setStartButtonIcon] = useState(faPlay);
   const [sequence, setSequence] = useState(
       [
@@ -167,7 +168,7 @@ const SoundContext3 = () => {
           }
           */
           if ( nextNote.current < audioContext.currentTime + lookahead){
-            runOscillator(nextNote.current, false);
+            runOscillator(nextNote.current, false, true);
             nextNote.current += 60 / tempo;
           }
         }
@@ -179,7 +180,10 @@ const SoundContext3 = () => {
           // console.warn('current time: ' + audioContext.currentTime);
           if ( nextInSequence.current < audioContext.currentTime + lookahead){
             if ( iterator.current.k === 0 ) strong = true; else strong = false;
-            runOscillator(nextInSequence.current, strong );
+            // run beep on strong beats and weak beats if enabled
+            if(strong || weakBeats) {
+              runOscillator(nextInSequence.current, strong);
+            }
             /*
             console.warn('i: ' + iterator.current.i);
             console.warn('j: ' + iterator.current.j);
@@ -212,7 +216,7 @@ const SoundContext3 = () => {
         }
       }
     }
-  }, [metronomeWorker, audioContext, tempo]);
+  }, [metronomeWorker, audioContext, tempo, weakBeats]);
 
   useEffect(() => {
     let mounted = true;
@@ -396,31 +400,40 @@ const SoundContext3 = () => {
       setMetronomeRunning(false);
     }
   }
+
+  const handleWeakBeats  = () => {
+    // toggle weak beats
+    setWeakBeats(!weakBeats);
+  }
   
   return (
   <>
   <div>Metronome</div>
-  <div className = 'button-div'>
+  <div className = 'sound-div'>
     <SequenceSelector setSequence={setSequence}/>
-    <button onClick={handleStartSequence} disabled={metronomeRunning}>
-      <FontAwesomeIcon  icon={startButtonIcon}/></button>
-    <button onClick={handleResetSequencer} disabled={metronomeRunning}><FontAwesomeIcon icon={faRefresh}/></button>
-    <button onClick={handleStartMetronome} disabled={sequenceRunning}>Start / Stop Metronome</button>
-    <label htmlFor = 'tempo'>Tempo: </label>
-    <input type='number' id='tempo' name='tempo' min = '40' max = '208' 
-      pattern="^\d*(\.\d{0,2})?$"  value={tempo}
-      onChange={handleTempo}/>
-    <input id='vol-control' type='range' min='0' max='100' step='1' onChange={handleVolume}
-    value={volume * 100}/>
-    <ProgressBar  now={progressPercentage}
-        variant='info'/>
+    <div className='control-div'>
+      <button onClick={handleStartSequence} disabled={metronomeRunning}>
+        <FontAwesomeIcon  icon={startButtonIcon}/><label className='sequence-label'> Start / Pause Sequence</label></button>
+      <button onClick={handleResetSequencer} disabled={metronomeRunning}><FontAwesomeIcon icon={faRefresh}/></button>
+      <button onClick={handleStartMetronome} disabled={sequenceRunning}>Start / Stop Metronome</button>
+      <div className='tempo-control'>
+        <label htmlFor = 'tempo' className='tempo-label'>Tempo: </label>
+        <input type='number' id='tempo' name='tempo' min = '40' max = '208' 
+          pattern="^\d*(\.\d{0,2})?$"  value={tempo}
+          onChange={handleTempo}/>
+      </div>
+      <input id='vol-control' type='range' min='0' max='100' step='1' onChange={handleVolume}
+      value={volume * 100}/>
+      <label htmlFor='weak-beats' className='weak-beats-label'>Weak Beats</label> 
+      <input type='checkbox' id='weak-beats' value={weakBeats} onClick={handleWeakBeats}/>
 
-    <canvas ref={progressRef} className='anim-progress'></canvas>
+      <canvas ref={progressRef} className='anim-progress'></canvas>
 
-    <canvas ref={blinkerRef} className='blinker'></canvas>
+      <canvas ref={blinkerRef} className='blinker'></canvas>
+    </div>
   </div>
   </>
   );
 };
 
-export default SoundContext3;
+export default SoundContext;
