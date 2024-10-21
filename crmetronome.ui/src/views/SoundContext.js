@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 const metronomeWorker = new Worker('metronomeWorker.js');
 // import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faRefresh} from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faRefresh, faStop} from '@fortawesome/free-solid-svg-icons';
 import getProgress from '../helpers/calculators';
 import SequenceSelector from '../components/SequenceSelector';
 
@@ -16,6 +16,7 @@ const SoundContext = () => {
   const [tempo, setTempo] = useState(60);
   const [weakBeats, setWeakBeats] = useState(false);
   const [startButtonIcon, setStartButtonIcon] = useState(faPlay);
+  const [sequenceButtonIcon, setSequenceButtonIcon] = useState(faPlay);
   const [sequence, setSequence] = useState(
       [
         {
@@ -29,6 +30,7 @@ const SoundContext = () => {
           tempo: 160
         },
       ]);
+  const [metronomeMode, setMetronomeMode] = useState(true);
   const requestAnimRef = useRef(); // stores requestAnimationFrame
   const requestAnimProgressRef = useRef(); // stores requestAnimationFrame
                                            // for progress bar
@@ -45,6 +47,8 @@ const SoundContext = () => {
   const nextNote = useRef(); // tracks next metronome beat
   const nextInSequence = useRef(); // tracks next sequence beat
   const iterator = useRef();
+//  const BLOCK = {display: 'block'};
+//  const NONE = {display: 'none'};
 
   const initializeIterator = () => {
     iterator.current = {
@@ -69,7 +73,7 @@ const SoundContext = () => {
     progressTotal.current = 0;
     requestAnimationFrame(drawBlankProgress);
     cancelAnimationFrame(requestAnimProgressRef.current);
-    setStartButtonIcon(faPlay);
+    setSequenceButtonIcon(faPlay);
   };
     
   const setupContext = () => {
@@ -317,38 +321,7 @@ const SoundContext = () => {
     }
   };
 
-  /*
-  const runProgress = (command) => {
-    let totalTime = 0;
-    let interval = 100;
-    progressPercentage.current = 0;
-    if (command === 'start' && audioContext != null) {
-      if (elapsedTime.current === undefined){
-        elapsedTime.current = 0;
-      }
-      for ( let i = 0; i < sequence.length; i++) {
-          let beats = sequence[i].pattern.reduce((a,b) => a + b, 0);
-          //console.warn(beats);
-          //console.warn(sequence[i].tempo);
-          totalTime += beats * (60/sequence[i].tempo) * sequence[i].reps;
-      }
-      progressID.current = setInterval(() => {
-        elapsedTime.current += interval/1000;
-        progressPercentage.current = (elapsedTime.current / totalTime) * 100;
-        console.warn(elapsedTime.current);
-      }, interval);
-    } else if (command === 'pause'){
-        clearInterval(progressID.current);
-    } else if (command === 'stop'){
-      clearInterval(progressID.current);
-      elapsedTime.current = 0;
-      progressPercentage.current = 0;
-    }
-  }
-  */
-
   const handleStartSequence = () => {
-    console.warn('handleStartSequence');
     if (gainNode && audioContext) {
       gainNode.gain.value = volume;
       if ( !sequenceRunning && !metronomeRunning ) {
@@ -358,13 +331,13 @@ const SoundContext = () => {
         setSequenceRunning(true);
         timeStamp.current = performance.now();
         // runProgress('start');
-        setStartButtonIcon(faPause);
+        setSequenceButtonIcon(faPause);
       } else if (sequenceRunning) {
         metronomeWorker.postMessage('seqStop');
         setSequenceRunning(false);
         // runProgress('pause');
         nextInSequence.current = -1; // signals black blinker
-        setStartButtonIcon(faPlay);
+        setSequenceButtonIcon(faPlay);
       }
     }
   };
@@ -394,10 +367,12 @@ const SoundContext = () => {
       metronomeWorker.postMessage('start');
       nextNote.current = audioContext.currentTime + .05;
       setMetronomeRunning(true);
+      setStartButtonIcon(faStop);
     } else if (!sequenceRunning  && metronomeRunning) {
       metronomeWorker.postMessage('stop');
       nextNote.current = -1;
       setMetronomeRunning(false);
+      setStartButtonIcon(faPlay);
     }
   }
 
@@ -405,30 +380,63 @@ const SoundContext = () => {
     // toggle weak beats
     setWeakBeats(!weakBeats);
   }
+
+  const handleMetronomeMode = () => {
+    // toggle mode, stop sequence
+    metronomeWorker.postMessage('seqStop');
+    resetSequencer();
+    setMetronomeMode(true);
+  }
+  
+  const handleSequenceMode = () => {
+    // toggle mode
+    metronomeWorker.postMessage('stop');
+    nextNote.current = -1;
+    setMetronomeMode(false);
+    setMetronomeRunning(false);
+    setStartButtonIcon(faPlay);
+  }
   
   return (
   <>
-  <div>Metronome</div>
+  {metronomeMode ? 
+  <h2>Metronome</h2> : <h2>Sequence</h2> }
+  <div>Select Mode</div>
+  <div className='selectMode'>
+    <button onClick={handleMetronomeMode} className='metronome-mode-button' disabled={metronomeMode}>Metronome</button>
+    <button onClick={handleSequenceMode} className='sequence-mode-button' disabled={!metronomeMode}>Sequence</button>
+  </div>
   <div className = 'sound-div'>
-    <SequenceSelector setSequence={setSequence}/>
+    {!metronomeMode ?
+    <SequenceSelector setSequence={setSequence}/> : null }
     <div className='control-div'>
-      <button onClick={handleStartSequence} disabled={metronomeRunning}>
-        <FontAwesomeIcon  icon={startButtonIcon}/><label className='sequence-label'> Start / Pause Sequence</label></button>
-      <button onClick={handleResetSequencer} disabled={metronomeRunning}><FontAwesomeIcon icon={faRefresh}/></button>
-      <button onClick={handleStartMetronome} disabled={sequenceRunning}>Start / Stop Metronome</button>
+      { !metronomeMode ?
+      <div>
+        <button onClick={handleStartSequence} disabled={metronomeRunning}>
+        <FontAwesomeIcon  icon={sequenceButtonIcon}/><label className='sequence-label'> Start / Pause Sequence</label></button>
+        <button onClick={handleResetSequencer} disabled={metronomeRunning}><FontAwesomeIcon icon={faRefresh}/></button> </div>
+        : null }
+      { metronomeMode ? 
+      <button onClick={handleStartMetronome} disabled={sequenceRunning}>
+        <FontAwesomeIcon icon={startButtonIcon}/>
+        <label className='start-sequence-button'>Start / Stop Metronome</label>/</button> : null }
       <div className='tempo-control'>
         <label htmlFor = 'tempo' className='tempo-label'>Tempo: </label>
         <input type='number' id='tempo' name='tempo' min = '40' max = '208' 
           pattern="^\d*(\.\d{0,2})?$"  value={tempo}
           onChange={handleTempo}/>
       </div>
+      <label htmlFor='vol-control'>Volume: </label>
       <input id='vol-control' type='range' min='0' max='100' step='1' onChange={handleVolume}
       value={volume * 100}/>
+      { !metronomeMode ?
+      <div>
       <label htmlFor='weak-beats' className='weak-beats-label'>Weak Beats</label> 
       <input type='checkbox' id='weak-beats' value={weakBeats} onClick={handleWeakBeats}/>
-
-      <canvas ref={progressRef} className='anim-progress'></canvas>
-
+      </div> : null }
+      <canvas style={{display: metronomeMode ? 'none' : 'block'}}
+        ref={progressRef} className='anim-progress'></canvas>
+      
       <canvas ref={blinkerRef} className='blinker'></canvas>
     </div>
   </div>
