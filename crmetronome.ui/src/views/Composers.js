@@ -53,22 +53,31 @@ const Composers = () => {
   }, [reload]);
 
   const checkChangedForm = () => {
-    let birthDateParts = composerSelectOptions[composerProfile.index].birth
-                                  .substring(0,10).split('/');
-    let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
-    let deathDateParts = composerSelectOptions[composerProfile.index].death
-                                  .substring(0,10).split('/');
-    let dbEngineDeathDate = deathDateParts[2] + '-' + deathDateParts[0] + '-' + deathDateParts[1];
-    if (composerProfile.first != composerSelectOptions[composerProfile.index].first   ||
+    if (composerProfile.index) {
+      let birthDateParts = composerSelectOptions[composerProfile.index].birth
+                                    .substring(0,10).split('/');
+      let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
+      let deathDateParts = composerSelectOptions[composerProfile.index].death
+                                    .substring(0,10).split('/');
+      let dbEngineDeathDate = deathDateParts[2] + '-' + deathDateParts[0] + '-' + deathDateParts[1];
+      if(composerProfile.first != composerSelectOptions[composerProfile.index].first   ||
         composerProfile.last != composerSelectOptions[composerProfile.index].last     ||
         composerProfile.middle != composerSelectOptions[composerProfile.index].middle ||
         composerProfile.birth != dbEngineBirthDate ||
         composerProfile.death != dbEngineDeathDate ||
         composerProfile.shared != composerSelectOptions[composerProfile.index].shared) {
-      setSubmitDisabled(false);
-    } else {
-      setSubmitDisabled(true);
-    }
+          setSubmitDisabled(false);
+      } 
+    } else if (composerProfile.first != emptyProfile.first   ||
+        composerProfile.last != emptyProfile.last     ||
+        composerProfile.middle != emptyProfile.middle ||
+        composerProfile.birth != "" || 
+        composerProfile.death != "" ||
+        composerProfile.shared != emptyProfile.shared) {
+          setSubmitDisabled(false);
+          }
+         
+    else setSubmitDisabled(true);
   }
 
   useEffect(() => {
@@ -145,6 +154,7 @@ const Composers = () => {
     // Adding new composer
     if (composerProfile.id === emptyGuid) {
       const composerOptionsArr = [];
+      debugger;
       addComposer(composerProfile).then(() => getAllComposers().then((composerArray) => {
       for (let i = 0; i < composerArray.length; i += 1) {
         const option = {
