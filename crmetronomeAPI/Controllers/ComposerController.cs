@@ -24,9 +24,9 @@ namespace crmetronomeAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllComposers()
+        public IActionResult GetAllComposersSorted()
         {
-            var result = _composerRepository.GetAll();
+            var result = _composerRepository.GetAllSorted();
             return Ok(result);
         }
 

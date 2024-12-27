@@ -25,6 +25,14 @@ namespace crmetronomeAPI.DataAccess
             var composers = db.Query<Composer>(@"SELECT * From Composers");
             return composers;
         }
+        internal IEnumerable<Composer> GetAllSorted()
+        {
+            using var db = new SqlConnection(_connectionString);
+
+            var composers = db.Query<Composer>(@"SELECT * From Composers ORDER BY Last, First, Middle");
+            return composers;
+        }
+
 
         internal Composer GetComposerById(Guid userId)
         {
