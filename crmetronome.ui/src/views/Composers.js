@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import CreatableSelect from 'react-select/creatable';
 import {getAllComposers, addComposer, updateComposerWithPatch, deleteComposer} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
@@ -20,6 +20,7 @@ const Composers = () => {
   const [composerHasComposition, setComposerHasComposition] = useState(true);
   const [reload, setReload] = useState(false);
   const [submitDisabled, setSubmitDisabled] = useState(true);
+  const selectRef = useRef(null);
 
   useEffect(() => {
     const composerOptionsArr = [];
@@ -53,22 +54,30 @@ const Composers = () => {
   }, [reload]);
 
   const checkChangedForm = () => {
-    let birthDateParts = composerSelectOptions[composerProfile.index].birth
-                                  .substring(0,10).split('/');
-    let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
-    let deathDateParts = composerSelectOptions[composerProfile.index].death
-                                  .substring(0,10).split('/');
-    let dbEngineDeathDate = deathDateParts[2] + '-' + deathDateParts[0] + '-' + deathDateParts[1];
-    if (composerProfile.first != composerSelectOptions[composerProfile.index].first   ||
+    if (composerProfile.index != null) {
+      let birthDateParts = composerSelectOptions[composerProfile.index].birth
+                                    .substring(0,10).split('/');
+      let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
+      let deathDateParts = composerSelectOptions[composerProfile.index].death
+                                    .substring(0,10).split('/');
+      let dbEngineDeathDate = deathDateParts[2] + '-' + deathDateParts[0] + '-' + deathDateParts[1];
+      if(composerProfile.first != composerSelectOptions[composerProfile.index].first   ||
         composerProfile.last != composerSelectOptions[composerProfile.index].last     ||
         composerProfile.middle != composerSelectOptions[composerProfile.index].middle ||
         composerProfile.birth != dbEngineBirthDate ||
         composerProfile.death != dbEngineDeathDate ||
         composerProfile.shared != composerSelectOptions[composerProfile.index].shared) {
-      setSubmitDisabled(false);
-    } else {
-      setSubmitDisabled(true);
-    }
+          setSubmitDisabled(false);
+      }  else setSubmitDisabled(true);
+    } else if (composerProfile.first != emptyProfile.first   ||
+        composerProfile.last != emptyProfile.last     ||
+        composerProfile.middle != emptyProfile.middle ||
+        composerProfile.birth != "" || 
+        composerProfile.death != "" ||
+        composerProfile.shared != emptyProfile.shared) {
+          setSubmitDisabled(false);
+        }
+     else setSubmitDisabled(true);
   }
 
   useEffect(() => {
@@ -109,6 +118,7 @@ const Composers = () => {
       });
     }
     else setComposerProfile(emptyProfile);
+    setSubmitDisabled(true);
   };
 
   const handleNewComposer = (inputValue) => {
@@ -164,12 +174,12 @@ const Composers = () => {
       }
         setComposerSelectOptions(composerOptionsArr);
         setReload(!reload); //Trigger composer array reload
-
+        setSubmitDisabled(true);
+        setComposerProfile(emptyProfile);
       }));
       }
     else {
       // Editing existing composer
-      debugger;
       let composerObj = {};
       //composerObj.shared=null;
       // Update fields that have changed.
@@ -223,6 +233,7 @@ const Composers = () => {
         setComposerSelectOptions(composerOptionsArr);
         setReload(!reload); //Trigger composer array reload
         setSubmitDisabled(true);
+        selectRef.current.clearValue(); // Clear select field.
       }))}
     }
   }
@@ -233,6 +244,7 @@ const Composers = () => {
         if(response.status == 200)
           setReload(!reload); //Trigger composer array reload
           setComposerProfile(emptyProfile);
+          selectRef.current.clearValue();
       });
     } else {
       console.warn('Nothing to delete');
@@ -256,6 +268,7 @@ const Composers = () => {
       <h2>Composers Page</h2>
       <h3>Search Existing Composer</h3>
         <CreatableSelect isClearable={true} styles={selectStyles} options={composerSelectOptions}
+          ref={selectRef}
           onChange={handleComposerSelection}
           onCreateOption={handleNewComposer}/>
     </div>
