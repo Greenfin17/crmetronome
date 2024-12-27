@@ -62,6 +62,7 @@ const SequenceSelector = ({setSequence}) => {
         compositionOptionsArr.push(option);
       }
       compositionRef.current.clearValue();
+      excerptRef.current.clearValue();
       setCompositionSelectOptions(compositionOptionsArr);
       // console.warn(compositionRef.current);
     })
