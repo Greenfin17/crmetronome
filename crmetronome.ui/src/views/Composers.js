@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import CreatableSelect from 'react-select/creatable';
 import {getAllComposers, addComposer, updateComposerWithPatch, deleteComposer} from '../helpers/data/composerData';
 import getAllCompositionsByComposer from '../helpers/data/compositionData';
@@ -20,6 +20,7 @@ const Composers = () => {
   const [composerHasComposition, setComposerHasComposition] = useState(true);
   const [reload, setReload] = useState(false);
   const [submitDisabled, setSubmitDisabled] = useState(true);
+  const selectRef = useRef(null);
 
   useEffect(() => {
     const composerOptionsArr = [];
@@ -53,7 +54,7 @@ const Composers = () => {
   }, [reload]);
 
   const checkChangedForm = () => {
-    if (composerProfile.index) {
+    if (composerProfile.index != null) {
       let birthDateParts = composerSelectOptions[composerProfile.index].birth
                                     .substring(0,10).split('/');
       let dbEngineBirthDate = birthDateParts[2] + '-' + birthDateParts[0] + '-' + birthDateParts[1];
@@ -67,7 +68,7 @@ const Composers = () => {
         composerProfile.death != dbEngineDeathDate ||
         composerProfile.shared != composerSelectOptions[composerProfile.index].shared) {
           setSubmitDisabled(false);
-      } 
+      }  else setSubmitDisabled(true);
     } else if (composerProfile.first != emptyProfile.first   ||
         composerProfile.last != emptyProfile.last     ||
         composerProfile.middle != emptyProfile.middle ||
@@ -75,9 +76,8 @@ const Composers = () => {
         composerProfile.death != "" ||
         composerProfile.shared != emptyProfile.shared) {
           setSubmitDisabled(false);
-          }
-         
-    else setSubmitDisabled(true);
+        }
+     else setSubmitDisabled(true);
   }
 
   useEffect(() => {
@@ -118,6 +118,7 @@ const Composers = () => {
       });
     }
     else setComposerProfile(emptyProfile);
+    setSubmitDisabled(true);
   };
 
   const handleNewComposer = (inputValue) => {
@@ -154,7 +155,6 @@ const Composers = () => {
     // Adding new composer
     if (composerProfile.id === emptyGuid) {
       const composerOptionsArr = [];
-      debugger;
       addComposer(composerProfile).then(() => getAllComposers().then((composerArray) => {
       for (let i = 0; i < composerArray.length; i += 1) {
         const option = {
@@ -174,12 +174,12 @@ const Composers = () => {
       }
         setComposerSelectOptions(composerOptionsArr);
         setReload(!reload); //Trigger composer array reload
-
+        setSubmitDisabled(true);
+        setComposerProfile(emptyProfile);
       }));
       }
     else {
       // Editing existing composer
-      debugger;
       let composerObj = {};
       //composerObj.shared=null;
       // Update fields that have changed.
@@ -233,6 +233,7 @@ const Composers = () => {
         setComposerSelectOptions(composerOptionsArr);
         setReload(!reload); //Trigger composer array reload
         setSubmitDisabled(true);
+        selectRef.current.clearValue(); // Clear select field.
       }))}
     }
   }
@@ -243,6 +244,7 @@ const Composers = () => {
         if(response.status == 200)
           setReload(!reload); //Trigger composer array reload
           setComposerProfile(emptyProfile);
+          selectRef.current.clearValue();
       });
     } else {
       console.warn('Nothing to delete');
@@ -266,6 +268,7 @@ const Composers = () => {
       <h2>Composers Page</h2>
       <h3>Search Existing Composer</h3>
         <CreatableSelect isClearable={true} styles={selectStyles} options={composerSelectOptions}
+          ref={selectRef}
           onChange={handleComposerSelection}
           onCreateOption={handleNewComposer}/>
     </div>
