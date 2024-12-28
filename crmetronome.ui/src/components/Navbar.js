@@ -20,6 +20,9 @@ const NavBar = () => (
           <Link to= '/composers' className='menu-item'>
             Composers
           </Link>
+          <Link to='/compositions' className='menu-item'>
+            Compositions
+          </Link>
         </NavItem>
       </Nav>
     </Navbar>
