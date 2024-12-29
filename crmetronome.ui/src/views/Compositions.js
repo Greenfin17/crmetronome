@@ -55,8 +55,11 @@ const Compositions = () => {
       backgroundColor: '#55aaaa'
     })};
 
-  const handleComposerSelection = (composerSelection) => {
+  const handleComposerSelection = (composerSelection, {action}) => {
     let compositionOptionsArr = [];
+    if (action === "clear") {
+      compositionRef.current.clearValue();
+    }
     if (composerSelection) {
       getAllCompositionsByComposer(composerSelection.value).then((compositionArr) => {
         for(let i = 0; i < compositionArr.length; i += 1) {
