@@ -2,29 +2,32 @@
 
 import React, {useEffect, useState, useRef} from 'react';
 import Select from 'react-select';
-import CreatableSelect from 'react-select/creatable';
+// import CreatableSelect from 'react-select/creatable';
 import { getAllComposers } from '../helpers/data/composerData';
-import getAllCompositionsByComposer from '../helpers/data/compositionData';
+import { getAllCompositionsByComposer,
+         addComposition,
+         updateCompositionWithPatch } from '../helpers/data/compositionData';
 import getExcerptsByCompositionID from '../helpers/data/excerptData';
 
 const Compositions = () => {
   const emptyGuid = '00000000-0000-0000-0000-000000000000';
-  const [composerSelectOptions, setComposerSelectOptions] = useState([]);
-  const [compositionSelectOptions, setCompositionSelectOptions] = useState([]);
-  const [compositionProfile, setCompositionProfile] = useState([]);
-  const [submitDisabled, setSubmitDisabled] = useState(true);
-  const [compositionHasExcerpt, setCompositionHasExcerpt] = useState(false);
-
-  const composerRef = useRef();
-  const compositionRef = useRef();
   const emptyProfile = {
     id: emptyGuid,
     addedBy: '794B2C17-7A03-41E5-A954-21EAC1F31CF9',
     shared: false,
     composer: emptyGuid,
     title: '',
-    catalog: '',
+    catalog: ''
   };
+  const [composerSelectOptions, setComposerSelectOptions] = useState([]);
+  const [currentComposer, setCurrentComposer] = useState(null);
+  const [compositionSelectOptions, setCompositionSelectOptions] = useState([]);
+  const [compositionProfile, setCompositionProfile] = useState(emptyProfile);
+  const [submitDisabled, setSubmitDisabled] = useState(true);
+  const [compositionHasExcerpt, setCompositionHasExcerpt] = useState(false);
+  const composerRef = useRef();
+  const compositionRef = useRef();
+  
   useEffect(() => {
     const composerOptionsArr = [];
     let mounted = true;
@@ -50,25 +53,39 @@ const Compositions = () => {
         }
     })
       .catch(setComposerSelectOptions([]));
-    
       return function cleanup() {
       mounted = false;
     };
   }, []);
 
-  const handleChange= (e) => {
-    let value;
-    if (e.target.name === 'shared'){
-       value = e.target.checked;
-    } else value = e.target.value ? e.target.value : '';
-    
-    setCompositionProfile((prevState) => ({
-      ...prevState,
-      [e.target.name]: value
-    }));
-  }; 
+  const checkChangedForm = () => {
+    if (compositionProfile.index != null) {
+      if (compositionProfile.title != compositionSelectOptions[compositionProfile.index].title ||
+         compositionProfile.catalog != compositionSelectOptions[compositionProfile.index].catalog ||
+         compositionProfile.shared != compositionSelectOptions[compositionProfile.index].shared) {
+          setSubmitDisabled(false);
+      } else setSubmitDisabled(true);
+     } else if (compositionProfile.title != emptyProfile.title ||
+       compositionProfile.catalog != emptyProfile.catalog ||
+       compositionProfile.shared != emptyProfile.shared) {
+        setSubmitDisabled(false);
+       } else setSubmitDisabled(true);
 
-   const selectStyles = {
+  };
+
+  const clearCompositionProfileWithComposer = (composerID) => {
+    setCompositionProfile({
+      ...emptyProfile,
+      composer: composerID 
+    });
+  };
+
+  useEffect(() => {
+    if(compositionSelectOptions)
+    checkChangedForm();
+  }, [compositionProfile]);
+
+  const selectStyles = {
     control: (baseStyles) => ({
       ...baseStyles,
       background: '#aaaaaa'
@@ -79,48 +96,57 @@ const Compositions = () => {
       backgroundColor: '#55aaaa'
     })};
 
+  const loadCompositions = (composerID) => {
+    const compositionOptionsArr = [];
+    getAllCompositionsByComposer(composerID).then((compositionArr) => {
+      for(let i = 0; i < compositionArr.length; i += 1) {
+        const option = {
+          value: compositionArr[i].id,
+          index: i,
+          label: compositionArr[i].title ? compositionArr[i].title : '',
+          shared: compositionArr[i].shared,
+          title: compositionArr[i].title ? compositionArr[i].title : '',
+          catalog: compositionArr[i].catalog ? compositionArr[i].catalog : '',
+          composer: compositionArr[i].composer,
+          addedBy: compositionArr[i].addedBy
+        };
+        compositionOptionsArr.push(option);
+      }
+      compositionRef.current.clearValue();
+      setCompositionSelectOptions(compositionOptionsArr);
+    });
+  };
+
+
   const handleComposerSelection = (composerSelection, {action}) => {
-    let compositionOptionsArr = [];
     if (action === "clear") {
       compositionRef.current.clearValue();
-      setCompositionProfile(emptyProfile);
-      setSubmitDisabled(true);
+      clearCompositionProfileWithComposer(currentComposer); // clear form
+      setSubmitDisabled(true);  // disable submit button
+      setCurrentComposer(null); // no composer selected
+      setCompositionSelectOptions([]); // clear composition select array
     }
     else if (composerSelection) {
-      getAllCompositionsByComposer(composerSelection.value).then((compositionArr) => {
-        for(let i = 0; i < compositionArr.length; i += 1) {
-          const option = {
-            value: compositionArr[i].id,
-            index: i,
-            label: compositionArr[i].title,
-            shared: compositionArr[i].shared,
-            title: compositionArr[i].title,
-            catalog: compositionArr[i].catalog,
-            composer: compositionArr[i].composer,
-            addedBy: compositionArr[i].addedBy
-          };
-          compositionOptionsArr.push(option);
-        }
-        compositionRef.current.clearValue();
-        setCompositionSelectOptions(compositionOptionsArr);
-      });
+      setCurrentComposer(composerSelection.value);
+      loadCompositions(composerSelection.value);
     }
   };
 
   const handleCompositionSelection = (compositionSelection, {action}) => {
     if (action === "clear") {
-      setCompositionProfile(emptyProfile);
+      clearCompositionProfileWithComposer(currentComposer); // clear form
+      setSubmitDisabled(true);
     }
     else if(compositionSelection) {
       setCompositionProfile(() =>({
         id: compositionSelection.value,
         index: compositionSelection.index,
-        label: compositionSelection.label,
-        shared: compositionSelection.shared,
-        title: compositionSelection.title,
-        catalog: compositionSelection.catalog,
+        label: compositionSelection.label ? compositionSelection.title : '',
+        title: compositionSelection.title ? compositionSelection.title : '',
+        catalog: compositionSelection.catalog ? compositionSelection.catalog : '',
         composer: compositionSelection.composer,
-        addedBy: compositionSelection.addedBy
+        addedBy: compositionSelection.addedBy,
+        shared: compositionSelection.shared
       }));
       getExcerptsByCompositionID(compositionSelection.value).then( (excerptArr) => {
         if(excerptArr.length){
@@ -129,14 +155,54 @@ const Compositions = () => {
       });
     } //endif
   };
+
+  const handleChange= (e) => {
+    let value;
+    if (e.target.name === 'shared'){
+       value = e.target.checked;
+    } else value = e.target.value ? e.target.value : '';
+    
+    setCompositionProfile((prevState) => ({
+      ...prevState,
+      [e.target.name]: value,
+    }));
+  }; 
+
+
   const handleSubmit = () => {
-    console.warn('handleSubmit');
+    // Adding new composition
+    if (compositionProfile.id === emptyGuid && currentComposer !== emptyGuid) {
+      addComposition(compositionProfile).then(() => {
+        compositionRef.current.clearValue();
+        loadCompositions(currentComposer);
+        });
+    } else {
+    // edit existing composition
+    let compositionObj = {};
+    // update fields that have changed
+    if (compositionProfile.shared !== compositionSelectOptions[compositionProfile.index].shared) {
+      compositionObj.shared = compositionProfile.shared;
+    }
+    if (compositionProfile.title !== compositionSelectOptions[compositionProfile.index].title) {
+      compositionObj.title = compositionProfile.title;
+    }
+    if (compositionProfile.catalog !== compositionSelectOptions[compositionProfile.index].catalog) {
+      compositionObj.catalog = compositionProfile.catalog;
+    }
+    // if any fields were updated
+    if(Object.keys(compositionObj).length) {
+      compositionObj.id = compositionSelectOptions[compositionProfile.index].value;
+      updateCompositionWithPatch(compositionObj).then(() => {
+        compositionRef.current.clearValue();
+        loadCompositions(currentComposer);
+        });
+      }
+    }
   };
 
   const handleDelete = () => {
     console.warn('handleDelete');
   };
-
 
   return (
     <>
@@ -146,7 +212,7 @@ const Compositions = () => {
         <Select isClearable={true} styles={selectStyles} options={composerSelectOptions}
           ref={composerRef}
           onChange={handleComposerSelection} />
-        <CreatableSelect isClearable={true} styles={selectStyles} options={compositionSelectOptions}
+        <Select isClearable={true} styles={selectStyles} options={compositionSelectOptions}
           ref={compositionRef}
           onChange={handleCompositionSelection} />
     </div>

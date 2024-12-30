@@ -11,4 +11,24 @@ const getAllCompositionsByComposer = (composerID) => new Promise((resolve, rejec
       reject(error)});
 });
 
-export default getAllCompositionsByComposer;
+const addComposition = (compositionProfile) => new Promise((resolve, reject) => {
+  axios.post(`${apiURL}/api/compositions`, compositionProfile)
+    .then((response) => {
+      resolve(response.data)})
+    .catch((error) => {
+      reject(error)});
+});
+
+const updateCompositionWithPatch = (compositionProfile) => new Promise((resolve, reject) => {
+  axios.patch(`${apiURL}/api/compositions`, compositionProfile)
+    .then((response) => {
+      resolve(response.data)})
+    .catch((error) => {
+      reject(error)});
+});
+
+export {
+  getAllCompositionsByComposer,
+  addComposition,
+  updateCompositionWithPatch
+};

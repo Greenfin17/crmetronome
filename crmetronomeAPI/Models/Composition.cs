@@ -12,6 +12,6 @@ namespace crmetronomeAPI.Models
 		public string Catalog { get; set; }
 		public Guid Composer { get; set; }
 		public Guid AddedBy { get; set; }
-		public bool Shared { get; set; }
+		public bool? Shared { get; set; }
     }
 }

@@ -83,6 +83,19 @@ namespace crmetronomeAPI.Controllers
             else return BadRequest($"Composition with ID ${compositionId} not updated.");
         }
 
+        [HttpPatch()]
+        public IActionResult UpdateCompositionWithPatch(Composition compositionObj)
+        {
+            Composition result = _compositionRepository.UpdateCompositionWithPatch(compositionObj);
+            if (result != null)
+            {
+                return Ok(result);
+            }
+
+            else return BadRequest($"Composition with ID ${compositionObj.ID} not updated");
+        }
+
+
         [HttpDelete("{compositionId}")]
         public IActionResult DeleteComposition(Guid compositionId)
         {

@@ -1,7 +1,7 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import CreatableSelect from 'react-select/creatable';
-import {getAllComposers, addComposer, updateComposerWithPatch, deleteComposer} from '../helpers/data/composerData';
-import getAllCompositionsByComposer from '../helpers/data/compositionData';
+import { getAllComposers, addComposer, updateComposerWithPatch, deleteComposer} from '../helpers/data/composerData';
+import { getAllCompositionsByComposer } from '../helpers/data/compositionData';
 
 const Composers = () => {
   const emptyGuid = '00000000-0000-0000-0000-000000000000';
@@ -147,8 +147,6 @@ const Composers = () => {
       ...prevState,
       [e.target.name]: value
     }));
-    checkChangedForm();
-
   };
   
   const handleSubmit = () => {
@@ -177,8 +175,7 @@ const Composers = () => {
         setSubmitDisabled(true);
         setComposerProfile(emptyProfile);
       }));
-      }
-    else {
+      } else {
       // Editing existing composer
       let composerObj = {};
       //composerObj.shared=null;
@@ -210,6 +207,7 @@ const Composers = () => {
         composerObj.death = composerProfile.death;
       }
       if (Object.keys(composerObj).length) {
+        debugger;
         composerObj.id = composerSelectOptions[composerProfile.index].value;
         composerObj.addedBy = composerSelectOptions[composerProfile.index].addedBy;
         const composerOptionsArr = [];

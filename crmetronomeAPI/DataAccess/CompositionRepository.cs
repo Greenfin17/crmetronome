@@ -110,6 +110,43 @@ namespace crmetronomeAPI.DataAccess
             var result = db.QuerySingleOrDefault<Composition>(sql, parameters);
             return result;
         }
+        internal Composition UpdateCompositionWithPatch(Composition compositionObj)
+        {
+            using var db = new SqlConnection(_connectionString);
+            var sql = @"UPDATE Compositions Set ";
+            // check for each changed property
+            var isFirst = true;
+            void CheckNotFirst()
+            {
+                if (!isFirst)
+                {
+                    sql += ", ";
+                } else
+                {
+                    isFirst = false;
+                }
+
+            }
+            if(compositionObj.Shared != null)
+            {
+                sql += "Shared = @Shared";
+                isFirst = false;
+            }
+            if (compositionObj.Title != null)
+            {
+                CheckNotFirst();
+                sql += "Title = @Title";
+            }
+            if (compositionObj.Catalog != null)
+            {
+                CheckNotFirst();
+                sql += "Catalog = @Catalog";
+            }
+            sql += " Output Inserted.* Where ID = @ID;";
+            var result = db.QuerySingleOrDefault<Composition>(sql, compositionObj);
+            return result;
+        }
+
 
         internal bool DeleteComposition(Guid compositionID)
         {
