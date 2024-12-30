@@ -19,16 +19,25 @@ const addComposition = (compositionProfile) => new Promise((resolve, reject) => 
       reject(error)});
 });
 
-const updateCompositionWithPatch = (compositionProfile) => new Promise((resolve, reject) => {
-  axios.patch(`${apiURL}/api/compositions`, compositionProfile)
+const deleteComposition = (compositionID) => new Promise((resolve, reject) => {
+  axios.delete(`${apiURL}/api/Compositions/${compositionID}`)
     .then((response) => {
-      resolve(response.data)})
+      resolve(response)})
     .catch((error) => {
-      reject(error)});
+      reject(error)})
+});
+
+const updateCompositionWithPatch = (compositionProfile) => new Promise((resolve, reject) => {
+  axios.patch(`${apiURL}/api/compositions/${compositionProfile}`)
+    .then((response) => {
+      resolve(response);})
+    .catch((error) => {
+      reject(error);})
 });
 
 export {
   getAllCompositionsByComposer,
   addComposition,
+  deleteComposition,
   updateCompositionWithPatch
 };

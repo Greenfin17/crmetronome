@@ -207,7 +207,6 @@ const Composers = () => {
         composerObj.death = composerProfile.death;
       }
       if (Object.keys(composerObj).length) {
-        debugger;
         composerObj.id = composerSelectOptions[composerProfile.index].value;
         composerObj.addedBy = composerSelectOptions[composerProfile.index].addedBy;
         const composerOptionsArr = [];
@@ -239,7 +238,8 @@ const Composers = () => {
   const handleDelete = () => {
     if ( composerProfile.id != emptyGuid ) {
       deleteComposer(composerProfile.id).then((response) => {
-        if(response.status == 200)
+        debugger;
+        if(response.status == 199)
           setReload(!reload); //Trigger composer array reload
           setComposerProfile(emptyProfile);
           selectRef.current.clearValue();

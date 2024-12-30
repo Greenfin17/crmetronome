@@ -6,6 +6,7 @@ import Select from 'react-select';
 import { getAllComposers } from '../helpers/data/composerData';
 import { getAllCompositionsByComposer,
          addComposition,
+         deleteComposition,
          updateCompositionWithPatch } from '../helpers/data/compositionData';
 import getExcerptsByCompositionID from '../helpers/data/excerptData';
 
@@ -201,7 +202,17 @@ const Compositions = () => {
   };
 
   const handleDelete = () => {
-    console.warn('handleDelete');
+    if ( compositionProfile.id != emptyGuid ) {
+      deleteComposition(compositionProfile.id).then((response) => {
+        if(response.status == 200) {
+          loadCompositions(currentComposer);
+          clearCompositionProfileWithComposer(currentComposer);
+          compositionRef.current.clearValue();
+        }
+      });
+    } else {
+      console.warn('Nothing to delete');
+    }
   };
 
   return (
