@@ -28,7 +28,7 @@ const deleteComposition = (compositionID) => new Promise((resolve, reject) => {
 });
 
 const updateCompositionWithPatch = (compositionProfile) => new Promise((resolve, reject) => {
-  axios.patch(`${apiURL}/api/compositions/${compositionProfile}`)
+  axios.patch(`${apiURL}/api/compositions/`, compositionProfile)
     .then((response) => {
       resolve(response);})
     .catch((error) => {

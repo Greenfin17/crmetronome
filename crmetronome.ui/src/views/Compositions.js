@@ -25,7 +25,7 @@ const Compositions = () => {
   const [compositionSelectOptions, setCompositionSelectOptions] = useState([]);
   const [compositionProfile, setCompositionProfile] = useState(emptyProfile);
   const [submitDisabled, setSubmitDisabled] = useState(true);
-  const [compositionHasExcerpt, setCompositionHasExcerpt] = useState(false);
+  const [compositionHasExcerpts, setCompositionHasExcerpts] = useState(false);
   const composerRef = useRef();
   const compositionRef = useRef();
   
@@ -126,6 +126,7 @@ const Compositions = () => {
       setSubmitDisabled(true);  // disable submit button
       setCurrentComposer(null); // no composer selected
       setCompositionSelectOptions([]); // clear composition select array
+      setCompositionHasExcerpts(false);
     }
     else if (composerSelection) {
       setCurrentComposer(composerSelection.value);
@@ -151,8 +152,8 @@ const Compositions = () => {
       }));
       getExcerptsByCompositionID(compositionSelection.value).then( (excerptArr) => {
         if(excerptArr.length){
-          setCompositionHasExcerpt(true);
-        }
+          setCompositionHasExcerpts(true);
+        } else setCompositionHasExcerpts(false);
       });
     } //endif
   };
@@ -243,7 +244,7 @@ const Compositions = () => {
           <button className='submit-button' onClick={handleSubmit}
             disabled={submitDisabled}>Submit</button>
           <button className='delete-button' onClick={() => handleDelete()}
-            disabled={compositionProfile.id === emptyGuid || compositionHasExcerpt}>Delete</button>
+            disabled={compositionProfile.id === emptyGuid || compositionHasExcerpts}>Delete</button>
       </div>
       </div>
     </div>

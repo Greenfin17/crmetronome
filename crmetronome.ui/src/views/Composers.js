@@ -238,11 +238,11 @@ const Composers = () => {
   const handleDelete = () => {
     if ( composerProfile.id != emptyGuid ) {
       deleteComposer(composerProfile.id).then((response) => {
-        debugger;
-        if(response.status == 199)
+        if(response.status == 200){
           setReload(!reload); //Trigger composer array reload
           setComposerProfile(emptyProfile);
           selectRef.current.clearValue();
+        }
       });
     } else {
       console.warn('Nothing to delete');
