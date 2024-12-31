@@ -1,33 +1,35 @@
-// Compositions.js
+// Excerpts.js
 
 import React, {useEffect, useState, useRef} from 'react';
 import Select from 'react-select';
 // import CreatableSelect from 'react-select/creatable';
 import { getAllComposers } from '../helpers/data/composerData';
 import { getAllCompositionsByComposer,
-         addComposition,
-         deleteComposition,
          updateCompositionWithPatch } from '../helpers/data/compositionData';
-import { getExcerptsByCompositionID } from '../helpers/data/excerptData';
+import { getExcerptsByCompositionID,
+         deleteExcerpt } from '../helpers/data/excerptData';
 
-const Compositions = () => {
+const Excerpts = () => {
   const emptyGuid = '00000000-0000-0000-0000-000000000000';
   const emptyProfile = {
     id: emptyGuid,
-    addedBy: '794B2C17-7A03-41E5-A954-21EAC1F31CF9',
+    createdBy: '794B2C17-7A03-41E5-A954-21EAC1F31CF9',
     shared: false,
-    composer: emptyGuid,
-    title: '',
-    catalog: ''
+    composition: emptyGuid,
+    movement: '',
+    measures: ''
   };
   const [composerSelectOptions, setComposerSelectOptions] = useState([]);
   const [currentComposer, setCurrentComposer] = useState(null);
   const [compositionSelectOptions, setCompositionSelectOptions] = useState([]);
-  const [compositionProfile, setCompositionProfile] = useState(emptyProfile);
+  const [currentComposition, setCurrentComposition] = useState(null);
+  const [excerptProfile, setExcerptProfile] = useState(emptyProfile);
   const [submitDisabled, setSubmitDisabled] = useState(true);
   const [compositionHasExcerpts, setCompositionHasExcerpts] = useState(false);
+  const [excerptSelectOptions, setExcerptSelectOptions] = useState([]);
   const composerRef = useRef();
   const compositionRef = useRef();
+  const excerptRef = useRef();
   
   useEffect(() => {
     const composerOptionsArr = [];
@@ -60,31 +62,30 @@ const Compositions = () => {
   }, []);
 
   const checkChangedForm = () => {
-    if (compositionProfile.index != null) {
-      if (compositionProfile.title != compositionSelectOptions[compositionProfile.index].title ||
-         compositionProfile.catalog != compositionSelectOptions[compositionProfile.index].catalog ||
-         compositionProfile.shared != compositionSelectOptions[compositionProfile.index].shared) {
+    if (excerptProfile.index != null) {
+      if (excerptProfile.movement != excerptSelectOptions[excerptProfile.index].movement ||
+         excerptProfile.measures != excerptSelectOptions[excerptProfile.index].measures ||
+         excerptProfile.shared != excerptSelectOptions[excerptProfile.index].shared) {
           setSubmitDisabled(false);
       } else setSubmitDisabled(true);
-     } else if (compositionProfile.title != emptyProfile.title ||
-       compositionProfile.catalog != emptyProfile.catalog ||
-       compositionProfile.shared != emptyProfile.shared) {
+     } else if (excerptProfile.movement != emptyProfile.movement ||
+       excerptProfile.measures != emptyProfile.measures ||
+       excerptProfile.shared != emptyProfile.shared) {
         setSubmitDisabled(false);
        } else setSubmitDisabled(true);
-
   };
 
-  const clearCompositionProfileWithComposer = (composerID) => {
-    setCompositionProfile({
+  const clearExcerptProfileWithComposition = (compositionID) => {
+    setExcerptProfile({
       ...emptyProfile,
-      composer: composerID 
+      composition: compositionID 
     });
   };
 
   useEffect(() => {
-    if(compositionSelectOptions)
+    if(excerptSelectOptions)
     checkChangedForm();
-  }, [compositionProfile]);
+  }, [excerptProfile]);
 
   const selectStyles = {
     control: (baseStyles) => ({
@@ -118,11 +119,29 @@ const Compositions = () => {
     });
   };
 
+  const loadExcerpts = (compositionID) => {
+    const excerptOptionsArr = [];
+    getExcerptsByCompositionID(compositionID).then((excerptArr) => {
+      for(let i = 0; i < excerptArr.length; i += 1) {
+        const option = {
+          value: excerptArr[i].id,
+          index: i,
+          composition: excerptArr[i].composition,
+          movement: excerptArr[i].movement ? excerptArr[i].movement : '',
+          measures: excerptArr[i].measure? excerptArr[i].measures : '',
+          catalog: excerptArr[i].catalog ? excerptArr[i].catalog : '',
+          createdBy: excerptArr[i].createdBy,
+          shared: excerptArr[i].shared
+        };
+      excerptOptionsArr.push(option);
+      excerptRef.current.clearValue();
+      setExcerptSelectOptions(excerptOptionsArr);
+    }});
+  };
 
   const handleComposerSelection = (composerSelection, {action}) => {
     if (action === "clear") {
       compositionRef.current.clearValue();
-      clearCompositionProfileWithComposer(currentComposer); // clear form
       setSubmitDisabled(true);  // disable submit button
       setCurrentComposer(null); // no composer selected
       setCompositionSelectOptions([]); // clear composition select array
@@ -136,25 +155,10 @@ const Compositions = () => {
 
   const handleCompositionSelection = (compositionSelection, {action}) => {
     if (action === "clear") {
-      clearCompositionProfileWithComposer(currentComposer); // clear form
       setSubmitDisabled(true);
-    }
-    else if(compositionSelection) {
-      setCompositionProfile(() =>({
-        id: compositionSelection.value,
-        index: compositionSelection.index,
-        label: compositionSelection.label ? compositionSelection.title : '',
-        title: compositionSelection.title ? compositionSelection.title : '',
-        catalog: compositionSelection.catalog ? compositionSelection.catalog : '',
-        composer: compositionSelection.composer,
-        addedBy: compositionSelection.addedBy,
-        shared: compositionSelection.shared
-      }));
-      getExcerptsByCompositionID(compositionSelection.value).then( (excerptArr) => {
-        if(excerptArr.length){
-          setCompositionHasExcerpts(true);
-        } else setCompositionHasExcerpts(false);
-      });
+    } else if(compositionSelection) {
+      loadExcerpts(compositionSelection.value);
+      setCurrentComposition(compositionSelection.value);
     } //endif
   };
 
@@ -164,7 +168,7 @@ const Compositions = () => {
        value = e.target.checked;
     } else value = e.target.value ? e.target.value : '';
     
-    setCompositionProfile((prevState) => ({
+    setExcerptProfile((prevState) => ({
       ...prevState,
       [e.target.name]: value,
     }));
@@ -172,43 +176,43 @@ const Compositions = () => {
 
 
   const handleSubmit = () => {
-    // Adding new composition
-    if (compositionProfile.id === emptyGuid && currentComposer !== emptyGuid) {
-      addComposition(compositionProfile).then(() => {
-        compositionRef.current.clearValue();
-        loadCompositions(currentComposer);
+    // Adding new excerpt 
+    if (excerptProfile.id === emptyGuid && currentComposition !== emptyGuid) {
+      addExcerpt(excerptProfile).then(() => {
+        excerptRef.current.clearValue();
+        loadExcerpts(currentComposition);
         });
     } else {
     // edit existing composition
-    let compositionObj = {};
+    let excerptObj = {};
     // update fields that have changed
-    if (compositionProfile.shared !== compositionSelectOptions[compositionProfile.index].shared) {
-      compositionObj.shared = compositionProfile.shared;
+    if (excerptProfile.shared !== excerptSelectOptions[excerptProfile.index].shared) {
+      excerptObj.shared = excerptProfile.shared;
     }
-    if (compositionProfile.title !== compositionSelectOptions[compositionProfile.index].title) {
-      compositionObj.title = compositionProfile.title;
+    if (excerptProfile.title !== excerptSelectOptions[excerptProfile.index].title) {
+      excerptObj.movement = excerptProfile.movement;
     }
-    if (compositionProfile.catalog !== compositionSelectOptions[compositionProfile.index].catalog) {
-      compositionObj.catalog = compositionProfile.catalog;
+    if (excerptProfile.catalog !== excerptSelectOptions[excerptProfile.index].catalog) {
+      excerptObj.measures = excerptProfile.measures;
     }
     // if any fields were updated
-    if(Object.keys(compositionObj).length) {
-      compositionObj.id = compositionSelectOptions[compositionProfile.index].value;
-      updateCompositionWithPatch(compositionObj).then(() => {
-        compositionRef.current.clearValue();
-        loadCompositions(currentComposer);
+    if(Object.keys(excerptObj).length) {
+      excerptObj.id = excerptSelectOptions[excerptProfile.index].value;
+      updateExcerptWithPatch(excerptObj).then(() => {
+        excerptRef.current.clearValue();
+        loadExcerpts(currentComposition);
         });
       }
     }
   };
 
   const handleDelete = () => {
-    if ( compositionProfile.id != emptyGuid ) {
-      deleteComposition(compositionProfile.id).then((response) => {
+    if ( excerptProfile.id != emptyGuid ) {
+      deleteExcerpt(excerptProfile.id).then((response) => {
         if(response.status == 200) {
-          loadCompositions(currentComposer);
-          clearCompositionProfileWithComposer(currentComposer);
-          compositionRef.current.clearValue();
+          loadExcerpt(currentComposition);
+          clearExcerptProfileWithComposition(currentComposition);
+          excerptRef.current.clearValue();
         }
       });
     } else {
@@ -219,7 +223,7 @@ const Compositions = () => {
   return (
     <>
     <div className='content-page'>
-      <h2>Compositions Page</h2>
+      <h2>Excerpts Page</h2>
       <h4>Search Composer</h4>
       <Select isClearable={true} styles={selectStyles} options={composerSelectOptions}
         ref={composerRef}
@@ -228,6 +232,11 @@ const Compositions = () => {
       <Select isClearable={true} styles={selectStyles} options={compositionSelectOptions}
         ref={compositionRef}
         onChange={handleCompositionSelection} />
+      <h4>Search Excerpt</h4>
+      <Select isClearable={true} styles={selectStyles} options={excerptSelectOptions}
+        ref={excerptRef}
+        onChange={handleExcerptSelection} />
+
     </div>
     <div><h4>Add new composition if not found above</h4>  
       <div className='formOuterDiv'>
@@ -253,4 +262,4 @@ const Compositions = () => {
   );
 };
 
-export default Compositions;
+export default Excerpts;

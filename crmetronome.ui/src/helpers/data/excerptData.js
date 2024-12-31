@@ -11,4 +11,15 @@ const getExcerptsByCompositionID = (compositionID) => new Promise((resolve, reje
       reject(error)});
 });
 
-export default getExcerptsByCompositionID;
+const deleteExcerpt = (excerptID) => new Promise((resolve, reject) => {
+  axios.delete(`${apiURL}/api/excerpts/${excerptID}`)
+    .then((response) => {
+      resolve(response)})
+    .catch((error) => {
+      reject(error)})
+});
+
+export { 
+  getExcerptsByCompositionID,
+  deleteExcerpt
+};
