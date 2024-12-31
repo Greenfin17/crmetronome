@@ -60,7 +60,7 @@ namespace crmetronomeAPI.DataAccess
             using var db = new SqlConnection(_connectionString);
             var sql = @"SELECT * from Compositions 
                         WHERE ID = @Id";
-            var result = db.QueryFirstOrDefault<Composition>(sql, new { Id = Id });
+            var result = db.QueryFirstOrDefault<Composition>(sql, new { Id });
             if (result != null)
             {
                 returnVal = true;
@@ -100,11 +100,11 @@ namespace crmetronomeAPI.DataAccess
             var parameters = new
             {
                 ID = compositionID,
-                Title = compositionObj.Title,
-                Catalog = compositionObj.Catalog,
-                Composer = compositionObj.Composer,
-                AddedBy = compositionObj.AddedBy,
-                Shared = compositionObj.Shared,
+                compositionObj.Title,
+                compositionObj.Catalog,
+                compositionObj.Composer,
+                compositionObj.AddedBy,
+                compositionObj.Shared,
             };
 
             var result = db.QuerySingleOrDefault<Composition>(sql, parameters);

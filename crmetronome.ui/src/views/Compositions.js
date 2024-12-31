@@ -8,7 +8,7 @@ import { getAllCompositionsByComposer,
          addComposition,
          deleteComposition,
          updateCompositionWithPatch } from '../helpers/data/compositionData';
-import getExcerptsByCompositionID from '../helpers/data/excerptData';
+import { getExcerptsByCompositionID } from '../helpers/data/excerptData';
 
 const Compositions = () => {
   const emptyGuid = '00000000-0000-0000-0000-000000000000';
@@ -220,13 +220,14 @@ const Compositions = () => {
     <>
     <div className='content-page'>
       <h2>Compositions Page</h2>
-      <h3>Search Existing Composer</h3>
-        <Select isClearable={true} styles={selectStyles} options={composerSelectOptions}
-          ref={composerRef}
-          onChange={handleComposerSelection} />
-        <Select isClearable={true} styles={selectStyles} options={compositionSelectOptions}
-          ref={compositionRef}
-          onChange={handleCompositionSelection} />
+      <h4>Search Composer</h4>
+      <Select isClearable={true} styles={selectStyles} options={composerSelectOptions}
+        ref={composerRef}
+        onChange={handleComposerSelection} />
+      <h4>Search Composition</h4>
+      <Select isClearable={true} styles={selectStyles} options={compositionSelectOptions}
+        ref={compositionRef}
+        onChange={handleCompositionSelection} />
     </div>
     <div><h4>Add new composition if not found above</h4>  
       <div className='formOuterDiv'>
