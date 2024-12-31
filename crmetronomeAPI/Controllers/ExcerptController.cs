@@ -14,7 +14,7 @@ namespace crmetronomeAPI.Controllers
     // [Authorize]
     public class ExcerptController : ControllerBase 
     {
-        private ExcerptRepository _excerptRepository;
+        private readonly ExcerptRepository _excerptRepository;
         public ExcerptController(ExcerptRepository excerptRepo)
         {
             _excerptRepository = excerptRepo;
@@ -40,7 +40,7 @@ namespace crmetronomeAPI.Controllers
         }
 
         [HttpGet("composition/{compositionID}")]
-        public IActionResult getExcerptsByCompositionID(Guid compositionID)
+        public IActionResult GetExcerptsByCompositionID(Guid compositionID)
         {
             var result = _excerptRepository.GetExcerptsByCompositionID(compositionID);
             return Ok(result);
@@ -68,6 +68,19 @@ namespace crmetronomeAPI.Controllers
 
             else return BadRequest($"Excerpt with ID ${excerptID} not updated.");
         }
+        
+        [HttpPatch()]
+        public IActionResult UpdateExcerptWithPatch(Excerpt excerptObj)
+        {
+            var result = _excerptRepository.UpdateExcerptWithPatch(excerptObj);
+            if (result != null)
+            {
+                return Ok(result);
+            }
+
+            else return BadRequest($"Excerpt with ID ${excerptObj.ID} not updated.");
+        }
+
 
         [HttpDelete("{excerptID}")]
         public IActionResult DeleteExcerpt(Guid excerptID)

@@ -15,7 +15,7 @@ namespace crmetronomeAPI.Controllers
     // [Authorize]
     public class CompositionController : ControllerBase
     {
-        private CompositionRepository _compositionRepository;
+        private readonly CompositionRepository _compositionRepository;
         public CompositionController(CompositionRepository compositionRepo)
         {
             _compositionRepository = compositionRepo;

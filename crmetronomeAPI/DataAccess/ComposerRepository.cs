@@ -99,12 +99,12 @@ namespace crmetronomeAPI.DataAccess
             var parameters = new
             {
                 ID = composerID,
-                AddedBy = composerObj.AddedBy,
-                Shared = composerObj.Shared,
-                First = composerObj.First,
-                Last = composerObj.Last,
-                Birth = composerObj.Birth,
-                Death = composerObj.Death
+                composerObj.AddedBy,
+                composerObj.Shared,
+                composerObj.First,
+                composerObj.Last,
+                composerObj.Birth,
+                composerObj.Death
             };
 
             var result = db.QuerySingleOrDefault<Composer>(sql, parameters);

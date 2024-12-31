@@ -12,6 +12,6 @@ namespace crmetronomeAPI.Models
 		public string Movement { get; set; }
 		public string Measures { get; set; }
 		public Guid CreatedBy { get; set; }
-		public bool Shared { get; set; }
+		public bool? Shared { get; set; }
     }
 }

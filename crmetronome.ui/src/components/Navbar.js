@@ -23,6 +23,9 @@ const NavBar = () => (
           <Link to='/compositions' className='menu-item'>
             Compositions
           </Link>
+          <Link to='/excerpts' className='menu-item'>
+            Excerpts
+          </Link>
         </NavItem>
       </Nav>
     </Navbar>

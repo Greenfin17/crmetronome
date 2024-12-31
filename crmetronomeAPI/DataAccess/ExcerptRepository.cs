@@ -89,14 +89,52 @@ namespace crmetronomeAPI.DataAccess
             var parameters = new
             {
                 ID = segmentID,
-                Composition = segmentObj.Composition,
-                Movement = segmentObj.Movement,
-                Measures = segmentObj.Measures,
-                CreatedBy = segmentObj.CreatedBy,
-                Shared = segmentObj.Shared
+                segmentObj.Composition,
+                segmentObj.Movement,
+                segmentObj.Measures,
+                segmentObj.CreatedBy,
+                segmentObj.Shared
             };
 
             var result = db.QuerySingleOrDefault<Excerpt>(sql, parameters);
+            return result;
+        }
+
+        internal Excerpt UpdateExcerptWithPatch(Excerpt excerptObj)
+        {
+            using var db = new SqlConnection(_connectionString);
+            var sql = @"UPDATE Excerpts Set ";
+            // check for each changed property
+            var isFirst = true;
+            void CheckNotFirst()
+            {
+                if (!isFirst)
+                {
+                    sql += ", ";
+                } else
+                {
+                    isFirst = false;
+                }
+
+            }
+            
+            if(excerptObj.Shared != null)
+            {
+                sql += "Shared = @Shared";
+                isFirst = false;
+            }
+            if (excerptObj.Movement == null)
+            {
+                CheckNotFirst();
+                sql += "Movement = @Movement";
+            }
+            if (excerptObj.Measures != null)
+            {
+                CheckNotFirst();
+                sql += "Measures = @Measures";
+            }
+            sql += " Output Inserted.* Where ID = @ID;";
+            var result = db.QuerySingleOrDefault<Excerpt>(sql, excerptObj);
             return result;
         }
 

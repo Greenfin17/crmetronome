@@ -4,6 +4,7 @@ import Home from '../views/Home.js';
 import SoundContext from '../views/SoundContext';
 import Composers from '../views/Composers.js';
 import Compositions from '../views/Compositions.js';
+import Excerpts from '../views/Excerpts.js';
 
 
 const RouterComponent = () => (
@@ -20,6 +21,9 @@ const RouterComponent = () => (
       />
       <Route path='/compositions'
         element={ <Compositions />}
+      />
+      <Route path='/excerpts'
+        element={ <Excerpts/>}
       />
     </Routes>
   </div>

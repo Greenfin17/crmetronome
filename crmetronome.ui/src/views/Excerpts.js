@@ -4,9 +4,10 @@ import React, {useEffect, useState, useRef} from 'react';
 import Select from 'react-select';
 // import CreatableSelect from 'react-select/creatable';
 import { getAllComposers } from '../helpers/data/composerData';
-import { getAllCompositionsByComposer,
-         updateCompositionWithPatch } from '../helpers/data/compositionData';
+import { getAllCompositionsByComposer } from '../helpers/data/compositionData';
 import { getExcerptsByCompositionID,
+         addExcerpt,
+         updateExcerptWithPatch,
          deleteExcerpt } from '../helpers/data/excerptData';
 
 const Excerpts = () => {
@@ -20,12 +21,10 @@ const Excerpts = () => {
     measures: ''
   };
   const [composerSelectOptions, setComposerSelectOptions] = useState([]);
-  const [currentComposer, setCurrentComposer] = useState(null);
   const [compositionSelectOptions, setCompositionSelectOptions] = useState([]);
   const [currentComposition, setCurrentComposition] = useState(null);
   const [excerptProfile, setExcerptProfile] = useState(emptyProfile);
   const [submitDisabled, setSubmitDisabled] = useState(true);
-  const [compositionHasExcerpts, setCompositionHasExcerpts] = useState(false);
   const [excerptSelectOptions, setExcerptSelectOptions] = useState([]);
   const composerRef = useRef();
   const compositionRef = useRef();
@@ -127,8 +126,10 @@ const Excerpts = () => {
           value: excerptArr[i].id,
           index: i,
           composition: excerptArr[i].composition,
+          label: excerptArr[i].movement ? excerptArr[i].movement : '' +
+            excerptArr[i].measures ? `: Measures ${excerptArr[i].measures}` : '',
           movement: excerptArr[i].movement ? excerptArr[i].movement : '',
-          measures: excerptArr[i].measure? excerptArr[i].measures : '',
+          measures: excerptArr[i].measures? excerptArr[i].measures : '',
           catalog: excerptArr[i].catalog ? excerptArr[i].catalog : '',
           createdBy: excerptArr[i].createdBy,
           shared: excerptArr[i].shared
@@ -143,12 +144,9 @@ const Excerpts = () => {
     if (action === "clear") {
       compositionRef.current.clearValue();
       setSubmitDisabled(true);  // disable submit button
-      setCurrentComposer(null); // no composer selected
       setCompositionSelectOptions([]); // clear composition select array
-      setCompositionHasExcerpts(false);
     }
     else if (composerSelection) {
-      setCurrentComposer(composerSelection.value);
       loadCompositions(composerSelection.value);
     }
   };
@@ -160,6 +158,23 @@ const Excerpts = () => {
       loadExcerpts(compositionSelection.value);
       setCurrentComposition(compositionSelection.value);
     } //endif
+  };
+
+  const handleExcerptSelection = (excerptSelection, {action}) => {
+    if (action === "clear") {
+      setSubmitDisabled(true);
+      clearExcerptProfileWithComposition(currentComposition)
+    } else if (excerptSelection) {
+      setExcerptProfile(() => ({
+        id: excerptSelection.value,
+        index: excerptSelection.index,
+        createdBy: excerptSelection.createdBy,
+        shared: excerptSelection.shared,
+        composition: excerptSelection.composition,
+        movement: excerptSelection.movement ? excerptSelection.movement : '',
+        measures: excerptSelection.measures ? excerptSelection.measures : ''
+      }));
+    }
   };
 
   const handleChange= (e) => {
@@ -189,10 +204,10 @@ const Excerpts = () => {
     if (excerptProfile.shared !== excerptSelectOptions[excerptProfile.index].shared) {
       excerptObj.shared = excerptProfile.shared;
     }
-    if (excerptProfile.title !== excerptSelectOptions[excerptProfile.index].title) {
+    if (excerptProfile.movement !== excerptSelectOptions[excerptProfile.index].movement) {
       excerptObj.movement = excerptProfile.movement;
     }
-    if (excerptProfile.catalog !== excerptSelectOptions[excerptProfile.index].catalog) {
+    if (excerptProfile.measures !== excerptSelectOptions[excerptProfile.index].measures) {
       excerptObj.measures = excerptProfile.measures;
     }
     // if any fields were updated
@@ -210,7 +225,7 @@ const Excerpts = () => {
     if ( excerptProfile.id != emptyGuid ) {
       deleteExcerpt(excerptProfile.id).then((response) => {
         if(response.status == 200) {
-          loadExcerpt(currentComposition);
+          loadExcerpts(currentComposition);
           clearExcerptProfileWithComposition(currentComposition);
           excerptRef.current.clearValue();
         }
@@ -238,23 +253,23 @@ const Excerpts = () => {
         onChange={handleExcerptSelection} />
 
     </div>
-    <div><h4>Add new composition if not found above</h4>  
+    <div><h4>Add new excerpt if not found above</h4>  
       <div className='formOuterDiv'>
-        <label className='input-label' htmlFor='composition-title'>Title</label>
-          <input className='form-input' type='text' name='title' value={compositionProfile.title}
-                label='composition-title' id='composition-title' onChange={handleChange} />
-        <label className='input-label' htmlFor='composition-catalog'>Catalog Designation</label>
-          <input className='form-input' type='text' name='catalog' value={compositionProfile.catalog}
-                label='catalog' id='composition-catalog' onChange={handleChange} />
-        <label className='input-label' htmlFor='composition-shared-checkbox'>Shared</label>
-          <input className='checkbox-input' id='composition-shared-checkbox' type='checkbox' name='shared' value={compositionProfile.shared}
-                checked={compositionProfile.shared}
-                label='shared' onChange={handleChange} />
+        <label className='input-label' htmlFor='excerpt-movement'>Movement</label>
+          <input className='form-input' type='text' name='movement' value={excerptProfile.movement}
+                label='excerpt-movement' id='excerpt-movement' onChange={handleChange} />
+        <label className='input-label' htmlFor='excerpt-measures'>Measures</label>
+          <input className='form-input' type='text' name='measures' value={excerptProfile.measures}
+                label='excerpt-measures' id='excerpt-measures' onChange={handleChange} />
+        <label className='input-label' htmlFor='excerpt-shared-checkbox'>Shared</label>
+          <input className='checkbox-input' id='excerpt-shared-checkbox' type='checkbox' name='shared' value={excerptProfile.shared}
+                checked={excerptProfile.shared}
+                label='shared343' onChange={handleChange} />
         <div className='button-div'>
           <button className='submit-button' onClick={handleSubmit}
             disabled={submitDisabled}>Submit</button>
           <button className='delete-button' onClick={() => handleDelete()}
-            disabled={compositionProfile.id === emptyGuid || compositionHasExcerpts}>Delete</button>
+            disabled={excerptProfile.id === emptyGuid}>Delete</button>
       </div>
       </div>
     </div>
