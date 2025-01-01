@@ -123,7 +123,7 @@ namespace crmetronomeAPI.DataAccess
                 sql += "Shared = @Shared";
                 isFirst = false;
             }
-            if (excerptObj.Movement == null)
+            if (excerptObj.Movement != null)
             {
                 CheckNotFirst();
                 sql += "Movement = @Movement";
