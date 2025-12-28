@@ -1,17 +1,18 @@
 
-@import "bootstrap/scss/bootstrap";
-.progress {
-  background: #f8f8f8;
+@use "bootstrap/scss/bootstrap";
+  .progress {
+    background: #f8f8f8;
 
-  .progress-bar {
-    height: 20px;
-    background-color: white;
+    .progress-bar {
+      height: 20px;
+      background-color: white;
+    }
   }
-}
 
-.anim-progress {
-  width: 90%;
-  margin: auto;
-  height: 20px;
-  background: #f8f8f8;
-}
+  .anim-progress {
+    width: 90%;
+    margin: auto;
+    height: 20px;
+    background: #f8f8f8;
+  }
+

@@ -23,6 +23,7 @@ const Excerpts = () => {
   const [composerSelectOptions, setComposerSelectOptions] = useState([]);
   const [compositionSelectOptions, setCompositionSelectOptions] = useState([]);
   const [currentComposition, setCurrentComposition] = useState(null);
+  const [currentComposer, setCurrentComposer] = useState(null);
   const [excerptProfile, setExcerptProfile] = useState(emptyProfile);
   const [submitDisabled, setSubmitDisabled] = useState(true);
   const [excerptSelectOptions, setExcerptSelectOptions] = useState([]);
@@ -115,6 +116,9 @@ const Excerpts = () => {
       }
       compositionRef.current.clearValue();
       setCompositionSelectOptions(compositionOptionsArr);
+      setExcerptProfile({
+        ...emptyProfile
+      })
     });
   };
 
@@ -135,32 +139,44 @@ const Excerpts = () => {
           shared: excerptArr[i].shared
         };
       excerptOptionsArr.push(option);
-      excerptRef.current.clearValue();
-      setExcerptSelectOptions(excerptOptionsArr);
     }});
+    excerptRef.current.clearValue();
+    setExcerptSelectOptions(excerptOptionsArr);
   };
 
   const handleComposerSelection = (composerSelection, {action}) => {
     if (action === "clear") {
       compositionRef.current.clearValue();
+      excerptRef.current.clearValue();
       setSubmitDisabled(true);  // disable submit button
       setCompositionSelectOptions([]); // clear composition select array
+      setExcerptSelectOptions([]);
     }
     else if (composerSelection) {
       loadCompositions(composerSelection.value);
+      setExcerptSelectOptions([]);
+      setCurrentComposer(composerSelection.value);
     }
   };
 
   const handleCompositionSelection = (compositionSelection, {action}) => {
     if (action === "clear") {
+      excerptRef.current.clearValue();
+      setExcerptSelectOptions([]);
       setSubmitDisabled(true);
     } else if(compositionSelection) {
       loadExcerpts(compositionSelection.value);
+      setExcerptSelectOptions([]);
       setCurrentComposition(compositionSelection.value);
+      setExcerptProfile({
+        ...emptyProfile,
+        composition: compositionSelection.value
+      });
     } //endif
   };
 
   const handleExcerptSelection = (excerptSelection, {action}) => {
+    console.warn(currentComposer);
     if (action === "clear") {
       setSubmitDisabled(true);
       clearExcerptProfileWithComposition(currentComposition)
@@ -224,6 +240,7 @@ const Excerpts = () => {
   const handleDelete = () => {
     if ( excerptProfile.id != emptyGuid ) {
       deleteExcerpt(excerptProfile.id).then((response) => {
+        debugger;
         if(response.status == 200) {
           loadExcerpts(currentComposition);
           clearExcerptProfileWithComposition(currentComposition);
